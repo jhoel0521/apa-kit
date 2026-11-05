@@ -14,8 +14,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python: ["3.9", "3.13"]
+        include:
+          - { os: ubuntu-22.04, python: "3.9" }    # ubuntu-latest ya no ofrece Python 3.9
+          - { os: ubuntu-latest, python: "3.13" }
+          - { os: windows-latest, python: "3.9" }
+          - { os: windows-latest, python: "3.13" }
+          - { os: macos-latest, python: "3.9" }
+          - { os: macos-latest, python: "3.13" }
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -26,3 +31,17 @@ jobs:
         run: python scripts/verificar_entorno.py --instalar
       - name: Prueba de humo (importar un Word y generar el documento)
         run: python scripts/prueba_humo.py
+
+  # El Python del sistema de Debian/Ubuntu rechaza "pip install" (PEP 668): debe usar .venv solo.
+  linux-python-del-sistema:
+    if: github.repository == 'jhoel0521/plantilla-docs-apa'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip
+      - name: Instalar con el Python del sistema (cae a .venv)
+        run: python3 scripts/verificar_entorno.py --instalar
+      - name: Prueba de humo dentro de .venv
+        run: python3 scripts/prueba_humo.py
+      - name: Confirmar que se creó .venv
+        run: test -d .venv
