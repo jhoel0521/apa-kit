@@ -1,0 +1,35 @@
+# Configuración del documento. NO pongas aquí datos personales: usa {{CLAVE}} y docs/.env.
+
+[documento]
+titulo = "[[Título de la tesis]]"
+subtitulo = "Tesis de grado para optar al título de {{GRADO}}"
+salida = "Tesis"                         # docs/dist/Tesis.docx
+papel = "carta"                          # carta | a4 | oficio
+fuente = "Times New Roman"               # APA 7 admite también Calibri 11 o Arial 11
+tamano = 12
+idioma = "es-BO"
+justificar = false                       # APA 7 recomienda alineado a la izquierda
+numerar_titulos = true                   # Capítulo N. / N.M. / N.M.K. automáticos
+formato_capitulo = "Capítulo {n}. {titulo}"
+niveles_indice = 3
+logo = "recursos/logos/logo.png"         # opcional: si no existe, la portada sale sin logo
+logo_ancho_cm = 4
+meta_palabras = 20000                    # para --estado
+
+[portada]
+espacios_arriba = 1
+lineas = [
+  "{{AUTOR}}",
+  "{{UNIVERSIDAD}}",
+  "{{FACULTAD}} — {{CARRERA}}",
+  "Tutor: {{TUTOR}}",
+  "{{CIUDAD}}, {{FECHA}}",
+]
+
+[preliminares]
+# portada · previos (capitulos/00-*.md) · indice · lista_tablas · lista_figuras
+orden = ["portada", "previos", "indice", "lista_tablas", "lista_figuras"]
+
+[variables]
+# Valores NO personales reutilizables en los capítulos como {{CLAVE}} (el .env tiene prioridad).
+NOMBRE_SISTEMA = "[[Nombre del sistema]]"

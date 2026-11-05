@@ -1,0 +1,13 @@
+# Datos personales: solo en tu disco (copia .env.example como .env)
+.env
+
+# Documentos de salida: se regeneran con scripts/generar_docx.py
+dist/*
+!dist/.gitkeep
+*.docx
+*.pdf
+
+# Python y archivos temporales de Word
+__pycache__/
+*.pyc
+~$*
