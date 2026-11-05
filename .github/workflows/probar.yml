@@ -1,0 +1,28 @@
+name: probar
+
+# Comprueba que la plantilla funciona en Windows, macOS y Linux, con el Python mínimo (3.9) y el actual.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  probar:
+    # Solo en el repositorio oficial; en los proyectos que usen la plantilla no se ejecuta.
+    if: github.repository == 'jhoel0521/plantilla-docs-apa'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.9", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Verificar entorno e instalar librerías
+        run: python scripts/verificar_entorno.py --instalar
+      - name: Prueba de humo (importar un Word y generar el documento)
+        run: python scripts/prueba_humo.py

@@ -21,13 +21,15 @@ TOKEN = re.compile(r"(\*\*[^*]+\*\*|\[[^\[\]]+\]\([^)]+\)|\[\[[^\]]+\]\]|`[^`]+`
 
 class DocumentoAPA:
     def __init__(self, fuente="Times New Roman", tamano=12, idioma="es-BO", papel="carta",
-                 justificar=False):
+                 justificar=False, etiquetas=None):
         self.doc = Document()
         self.fuente, self.tamano, self.idioma = fuente, tamano, idioma
         self.justificar = justificar
         ancho, alto = PAPELES[papel]
         self.ancho_texto = ancho - 2 * MARGEN
         self.contadores = {"Tabla": 0, "Figura": 0}
+        # Nombre visible: APA usa Tabla/Figura; algunas facultades piden Cuadro/Gráfico.
+        self.etiquetas = {"Tabla": "Tabla", "Figura": "Figura", **(etiquetas or {})}
         self._salto_pendiente = False
         self._estilos()
         self._pagina(ancho, alto)
@@ -256,9 +258,10 @@ class DocumentoAPA:
     def leyenda(self, tipo, titulo):
         """Tabla N / Figura N en negrita y el título en cursiva en la línea siguiente (APA 7)."""
         self.contadores[tipo] += 1
+        nombre = self.etiquetas[tipo]
         p = self._par("Caption")
-        p.add_run(f"{tipo} ").bold = True
-        self.campo(p, f"SEQ {tipo} \\* ARABIC", str(self.contadores[tipo])).bold = True
+        p.add_run(f"{nombre} ").bold = True
+        self.campo(p, f"SEQ {nombre} \\* ARABIC", str(self.contadores[tipo])).bold = True
         p.add_run().add_break(WD_BREAK.LINE)
         desde = len(p.runs)
         self.texto(p, titulo)
@@ -342,10 +345,13 @@ class DocumentoAPA:
         self._lista_campo("Índice de Contenidos", f'TOC \\o "1-{niveles}" \\h \\z \\u',
                           "Actualice los campos (Ctrl+A, F9) para generar el índice.")
 
+    def _lista_de(self, tipo):
+        n = self.etiquetas[tipo]
+        self._lista_campo(f"Lista de {n}s", f'TOC \\h \\z \\c "{n}"',
+                          f"Actualice los campos (Ctrl+A, F9) para generar la lista de {n.lower()}s.")
+
     def lista_tablas(self):
-        self._lista_campo("Lista de Tablas", 'TOC \\h \\z \\c "Tabla"',
-                          "Actualice los campos (Ctrl+A, F9) para generar la lista de tablas.")
+        self._lista_de("Tabla")
 
     def lista_figuras(self):
-        self._lista_campo("Lista de Figuras", 'TOC \\h \\z \\c "Figura"',
-                          "Actualice los campos (Ctrl+A, F9) para generar la lista de figuras.")
+        self._lista_de("Figura")

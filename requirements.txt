@@ -1,3 +1,4 @@
-# Librerías de Python para generar el documento (python docs/scripts/verificar_entorno.py --instalar)
+# Librerías de Python para generar el documento (python3 scripts/verificar_entorno.py --instalar)
 python-docx>=1.1.0   # escribe el .docx (estilos APA, tablas, campos de índice)
-Pillow>=10.0         # lee imágenes de figuras y genera diagramas en recursos/
+Pillow>=10.1         # lee imágenes de figuras y genera diagramas en recursos/
+tomli>=2.0; python_version < "3.11"   # lee documento.toml en Python 3.9 y 3.10 (3.11+ lo trae)

@@ -1,7 +1,7 @@
 """Genera el documento APA 7 (.docx) a partir de docs/capitulos/*.md.
 
 Uso (desde la raíz del repositorio):
-    python docs/scripts/generar_docx.py            # genera docs/dist/<salida>.docx
+    python3 docs/scripts/generar_docx.py           # (Windows: py -3) genera docs/dist/<salida>.docx
     python docs/scripts/generar_docx.py --estado   # avance por capítulo, sin generar
     python docs/scripts/generar_docx.py --forzar   # sobrescribe aunque el .docx se haya editado a mano
 
@@ -13,14 +13,20 @@ Fuentes:
 
 La sintaxis Markdown admitida está en docs/README.md.
 """
+import _entorno  # noqa: F401  (usa .venv/ si existe)
+
 import argparse
 import hashlib
 import json
 import re
 import sys
-import tomllib
 import unicodedata
 from pathlib import Path
+
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.9 y 3.10
+    import tomli as tomllib
 
 sys.path.insert(0, str(Path(__file__).parent))
 from apa import DocumentoAPA  # noqa: E402
@@ -253,10 +259,12 @@ def numerar(secciones, cfg):
                     registrar("sec", at["id"], f"«{b['texto']}»", b["origen"])
             elif b["tipo"] == "tabla" and b["leyenda"]:
                 tablas += 1
-                registrar("tabla", b["leyenda"]["at"]["id"], f"Tabla {tablas}", b["origen"])
+                registrar("tabla", b["leyenda"]["at"]["id"], f"{cfg.get('etiqueta_tabla', 'Tabla')} {tablas}",
+                          b["origen"])
             elif b["tipo"] == "figura":
                 figuras += 1
-                registrar("figura", b["at"]["id"], f"Figura {figuras}", b["origen"])
+                registrar("figura", b["at"]["id"], f"{cfg.get('etiqueta_figura', 'Figura')} {figuras}",
+                          b["origen"])
     return claves
 
 
@@ -417,7 +425,8 @@ def main():
     sub = Sustituto({**cfg.get("variables", {}), **env}, claves)
 
     doc = DocumentoAPA(dcfg.get("fuente", "Times New Roman"), int(dcfg.get("tamano", 12)),
-                       dcfg.get("idioma", "es-BO"), dcfg.get("papel", "carta"), dcfg.get("justificar", False))
+                       dcfg.get("idioma", "es-BO"), dcfg.get("papel", "carta"), dcfg.get("justificar", False),
+                       {"Tabla": dcfg.get("etiqueta_tabla", "Tabla"), "Figura": dcfg.get("etiqueta_figura", "Figura")})
     portada_cfg = {**dcfg, "portada": cfg.get("portada", {})}
     for parte in cfg.get("preliminares", {}).get("orden", ["portada", "previos", "indice",
                                                             "lista_tablas", "lista_figuras"]):

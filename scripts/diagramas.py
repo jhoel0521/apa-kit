@@ -5,6 +5,8 @@ Uso: python docs/scripts/diagramas.py
 Es un ejemplo del patrón "diagrama como código": el PNG se regenera desde aquí y se cita en
 los capítulos con ![Título](../recursos/diagramas/archivo.png){#clave}. Agrega tus funciones.
 """
+import _entorno  # noqa: F401  (usa .venv/ si existe)
+
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -14,12 +16,14 @@ ESCALA = 2  # resolución x2 para que se vea nítido al imprimir
 
 
 def fuente(tam):
-    for nombre in ("segoeui.ttf", "arial.ttf", "DejaVuSans.ttf"):
+    # Pillow busca estos nombres en las carpetas de fuentes de Windows, macOS y Linux.
+    for nombre in ("segoeui.ttf", "arial.ttf", "Arial.ttf", "Helvetica.ttc", "LiberationSans-Regular.ttf",
+                   "DejaVuSans.ttf"):
         try:
             return ImageFont.truetype(nombre, tam * ESCALA)
         except OSError:
             continue
-    return ImageFont.load_default()
+    return ImageFont.load_default(tam * ESCALA)  # Pillow >= 10.1: fuente escalable incluida
 
 
 def flujo(nombre, pasos, ancho_caja=220, alto_caja=70, sep=60):
