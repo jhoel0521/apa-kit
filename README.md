@@ -7,28 +7,34 @@ versionan.
 Es un **template**: se clona dentro de la carpeta `docs/` de cualquier proyecto (una app, un
 sistema, una tesis) y deja de depender de este repositorio.
 
-Repositorio: https://github.com/jhoel0521/plantilla-docs-apa
+- Sitio: https://jhoel0521.github.io/plantilla-docs-apa/
+- Repositorio: https://github.com/jhoel0521/plantilla-docs-apa
+- Funciona en **Windows, macOS y Linux** (probado en CI con Python 3.9 y 3.13). No hay ejecutables
+  propios: todo es Python legible. iPhone y iPad no pueden usarla (no instalan Python).
 
 ## Inicio rápido
 
 | Quiero… | Hago… |
 |---|---|
-| Integrarlo en un proyecto con un agente de IA | Copio el prompt de [`PROMPT_INICIAL.md`](PROMPT_INICIAL.md) en el agente, abierto en la raíz del proyecto |
+| Integrarlo en un proyecto con un agente de IA | Copio el **Prompt A** de [`PROMPT_INICIAL.md`](PROMPT_INICIAL.md) en el agente, abierto en la raíz del proyecto |
+| Usarlo con mi tesis en Word, sin programar | Sigo [`GUIA_ESTUDIANTES.md`](GUIA_ESTUDIANTES.md) o pego el **Prompt B** en mi asistente |
 | Integrarlo a mano | `cd mi-proyecto` → `git clone https://github.com/jhoel0521/plantilla-docs-apa.git docs` → si el proyecto tiene git: `rm -rf docs/.git`, `git add docs`, commit. Detalle en `PROMPT_INICIAL.md` |
-| Generar el documento | `python docs/scripts/generar_docx.py` |
-| Ver el avance | `python docs/scripts/generar_docx.py --estado` |
+| Importar un Word existente | `python3 docs/scripts/importar_docx.py "Mi tesis.docx"` |
+| Generar el documento | `python3 docs/scripts/generar_docx.py` |
+| Ver el avance | `python3 docs/scripts/generar_docx.py --estado` |
 
 Los comandos suponen que el template quedó en `docs/` y se ejecutan desde la raíz del proyecto.
 Si lo clonaste con otro nombre, cambia `docs/` por ese nombre. Dentro de este mismo repositorio
-usa `python scripts/...`.
+usa `python3 scripts/...`. **En Windows escribe `py -3` donde diga `python3`.**
 
 ## 1. Requisitos del sistema
 
 | Requisito | Versión mínima | Para qué | Cómo comprobarlo |
 |---|---|---|---|
-| Python | 3.11 (usa `tomllib`) | ejecutar `scripts/` | `python --version` |
-| python-docx | 1.1.0 | escribir el `.docx` APA | `pip show python-docx` |
-| Pillow | 10.0 | insertar imágenes y generar diagramas | `pip show Pillow` |
+| Python | 3.9 | ejecutar `scripts/` | `python3 --version` (Windows: `py -3 --version`) |
+| python-docx | 1.1.0 | escribir el `.docx` APA | lo instala el verificador |
+| Pillow | 10.1 | insertar imágenes y generar diagramas | lo instala el verificador |
+| tomli | 2.0 | solo en Python 3.9 y 3.10 | lo instala el verificador |
 | Git | 2.x | historial y control de qué se versiona | `git --version` |
 | Microsoft Word o LibreOffice | cualquiera | actualizar índices (F9) y exportar a PDF | opcional |
 | Fuente Times New Roman | — | fuente APA configurada por defecto | opcional (`fuente` en `documento.toml`) |
@@ -36,7 +42,7 @@ usa `python scripts/...`.
 Todo se comprueba con un solo comando, que además instala las librerías que falten:
 
 ```
-python docs/scripts/verificar_entorno.py --instalar
+python3 docs/scripts/verificar_entorno.py --instalar      # Windows: py -3 ...
 ```
 
 El script revisa Python, las librerías de `requirements.txt`, Git, que `.env`, `dist/`, `*.docx` y
@@ -44,17 +50,25 @@ El script revisa Python, las librerías de `requirements.txt`, Git, que `.env`, 
 herramientas opcionales. También detecta si quedó un `.git` del template dentro de otro
 repositorio. Termina con código 1 si hay errores.
 
+Si el sistema no deja instalar librerías globalmente (Debian, Ubuntu y Homebrew lo bloquean con el
+error `externally-managed-environment`), el verificador crea un entorno aislado en `.venv/` y los
+demás scripts lo usan automáticamente.
+
 ## 2. Estructura
 
 ```
 docs/                        (la raíz de este template, clonada en tu proyecto)
 ├─ README.md                 este manual
-├─ PROMPT_INICIAL.md         prompt para que un agente integre el template
+├─ PROMPT_INICIAL.md         prompts A (proyecto de software) y B (estudiante que no programa)
+├─ GUIA_ESTUDIANTES.md       paso a paso sin programar, para Windows, macOS y Linux
 ├─ AGENTS.md  CLAUDE.md      reglas para agentes de IA al escribir el documento
 ├─ LICENSE                   MIT: conserva el aviso de copyright
 ├─ scripts/
 │  ├─ verificar_entorno.py   requisitos del sistema y privacidad del repo
 │  ├─ generar_docx.py        capitulos/*.md → dist/<salida>.docx  (--estado, --forzar)
+│  ├─ importar_docx.py       tu Word existente → capitulos/*.md (no modifica el original)
+│  ├─ prueba_humo.py         comprueba que todo funciona en tu equipo (importa y genera un ejemplo)
+│  ├─ _entorno.py            usa .venv/ si existe
 │  ├─ apa.py                 estilos APA 7 (solo formato, sin contenido)
 │  └─ diagramas.py           diagramas como código → recursos/diagramas/*.png
 ├─ recursos/
@@ -65,7 +79,9 @@ docs/                        (la raíz de este template, clonada en tu proyecto)
 │  ├─ 00-*.md                preliminares (dedicatoria, resumen…): sin número, fuera del índice
 │  ├─ 01-…md a 89-…md        capítulos numerados automáticamente
 │  └─ 90-referencias.md, 95-anexos.md
+├─ original/                 copia de tu Word importado y su portada (IGNORADO por git)
 ├─ dist/                     documentos de salida (IGNORADO por git)
+├─ .venv/                    entorno aislado de Python, si hizo falta (IGNORADO)
 ├─ __pycache__/              caché de Python (IGNORADO)
 ├─ documento.toml            título, papel, fuente, portada, orden de preliminares
 ├─ .env.example              plantilla de datos personales (versionada, vacía)
@@ -77,15 +93,17 @@ docs/                        (la raíz de este template, clonada en tu proyecto)
 ## 3. Uso
 
 ```
-cp docs/.env.example docs/.env              # una sola vez; complétalo
-python docs/scripts/verificar_entorno.py    # antes de trabajar
-python docs/scripts/diagramas.py            # si cambiaste diagramas
-python docs/scripts/generar_docx.py         # genera docs/dist/Tesis.docx
-python docs/scripts/generar_docx.py --estado   # palabras, tablas, figuras y pendientes por capítulo
+python3 docs/scripts/verificar_entorno.py     # antes de trabajar; crea docs/.env: complétalo
+python3 docs/scripts/importar_docx.py "Mi tesis.docx"   # solo si ya tienes tu documento en Word
+python3 docs/scripts/diagramas.py             # si cambiaste diagramas
+python3 docs/scripts/generar_docx.py          # genera docs/dist/Tesis.docx
+python3 docs/scripts/generar_docx.py --estado   # palabras, tablas, figuras y pendientes por capítulo
+python3 docs/scripts/prueba_humo.py           # comprobación completa de tu instalación
 ```
 
-Al abrir el `.docx`, Word pregunta si actualiza los campos: responde **Sí** para llenar el
-índice, la lista de tablas y la lista de figuras (equivale a Ctrl+A, F9).
+Al abrir el `.docx` hay que actualizar los campos para llenar el índice y las listas de tablas y
+figuras: en **Word** (Windows o Mac) responde **Sí** a la pregunta (o Ctrl/⌘ + A y F9); en
+**LibreOffice**, *Herramientas → Actualizar → Todos los índices y tablas*.
 
 **Protección del documento editado a mano.** El generador guarda una huella de cada `.docx` que
 crea. Si después lo editas en Word, se niega a sobrescribirlo. En ese caso renómbralo (por ejemplo,
@@ -124,7 +142,7 @@ las tablas sin título solo dan aviso.
 
 - Nombre, carnet, tutor, universidad, etc. solo en `.env`. En los `.md` y en
   `documento.toml` se usa `{{CLAVE}}`.
-- `dist/`, `*.docx` y `*.pdf` nunca se suben. Para entregar, copia el archivo de `dist/` a otro lado.
+- `original/`, `dist/`, `.venv/`, `*.docx` y `*.pdf` nunca se suben. Para entregar, copia el archivo de `dist/` a otro lado.
 - Si algo se versionó por error: `git rm --cached <archivo>`, y si ya hay commits con datos
   personales, limpia el historial **antes** de subir a un remoto.
 

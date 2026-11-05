@@ -1,16 +1,28 @@
-# Prompt inicial: integrar el template en un proyecto
+# Prompts iniciales
 
-Copia el bloque siguiente en tu agente de IA (Claude Code, Codex, Gemini…) **abierto en la raíz del
-proyecto real**.
+Copia el prompt que te corresponda en tu asistente de IA (Claude, Codex, Gemini, ChatGPT con acceso
+a archivos…) y él hará la instalación contigo, paso a paso.
 
 - Repositorio: https://github.com/jhoel0521/plantilla-docs-apa
 - URL para clonar: `https://github.com/jhoel0521/plantilla-docs-apa.git`
+- ZIP (sin git): https://github.com/jhoel0521/plantilla-docs-apa/archive/refs/heads/main.zip
 
----
+| Tu caso | Prompt |
+|---|---|
+| Tienes un proyecto de software (con o sin git) y quieres su documentación en `docs/` | **A** |
+| No programas (derecho, contabilidad…), no usas git y ya tienes tu documento avanzado en Word o Google Docs | **B** (ver también [`GUIA_ESTUDIANTES.md`](GUIA_ESTUDIANTES.md)) |
+| Empiezas un documento desde cero, sin proyecto de software | **B**, respondiendo «no tengo documento» en el paso 4 |
+
+## Prompt A — integrar en un proyecto de software
+
+Ábrelo **en la raíz del proyecto real**.
 
 ```text
 Integra el template de documentación APA 7 en este proyecto. Sigue los pasos EN ORDEN, muéstrame
 la salida de cada comando y detente a preguntarme donde se indica. No inventes datos personales.
+
+Comando de Python: usa el que funcione en mi sistema (`py -3` en Windows; `python3` en macOS y
+Linux). Donde abajo diga `python`, significa ese comando. Pregúntame mi sistema si no lo sabes.
 
 URL del template: https://github.com/jhoel0521/plantilla-docs-apa.git
 Carpeta destino: docs   (si te doy otra, usa esa)
@@ -50,18 +62,20 @@ PASO 3.2 — NO tiene git
 
 PASO 4 — Requisitos del sistema
 - `python DESTINO/scripts/verificar_entorno.py --instalar`
-- Si falta Python ≥ 3.11 o Git, detente y dime qué instalar. No instales software del sistema
+- Si falta Python ≥ 3.9 o Git, detente y dime qué instalar. No instales software del sistema
   sin mi permiso. Repite la verificación hasta que dé 0 errores.
 
 PASO 5 — Datos personales
-- Copia `DESTINO/.env.example` a `DESTINO/.env` y pídeme los valores (autor, universidad,
+- El verificador ya creó `DESTINO/.env` desde `.env.example`. Pídeme los valores (autor, universidad,
   tutor…). Escríbelos SOLO en `.env`; nunca en .md, .toml, README ni commits.
 
 PASO 6 — Configuración del documento
 - Pregúntame: título, tipo de documento (tesis, informe, entrega…), nombre del archivo de
   salida, papel y si hay logo. Ajusta `DESTINO/documento.toml`.
-- Pregúntame el índice que exige mi institución y adapta `DESTINO/capitulos/` (un archivo por
-  capítulo, prefijo numérico para el orden). No supongas el índice.
+- Si ya tengo el documento avanzado en Word, pídeme la ruta del .docx e impórtalo con
+  `python DESTINO/scripts/importar_docx.py "<ruta>"` (no modifica el original).
+- Si no, pregúntame el índice que exige mi institución y adapta `DESTINO/capitulos/` (un archivo
+  por capítulo, prefijo numérico para el orden). No supongas el índice.
 
 PASO 7 — Prueba final
 - `python DESTINO/scripts/generar_docx.py` debe terminar en `OK .../dist/<salida>.docx`.
@@ -74,7 +88,92 @@ nunca uses --forzar sin mi permiso; no hagas push sin pedírtelo yo.
 
 ---
 
-## Lo mismo, a mano
+## Prompt B — estudiante que no programa, con su documento avanzado
+
+Ábrelo en cualquier carpeta (por ejemplo, *Documentos*). No necesitas git.
+
+```text
+Quiero usar la plantilla de documentos APA 7 de https://github.com/jhoel0521/plantilla-docs-apa
+con mi tesis, que ya tengo avanzada en Word (o Google Docs). NO soy programador: explícame cada
+paso con palabras simples, sin términos técnicos, y pregúntame antes de instalar algo o de tomar
+una decisión por mí. No inventes contenido de mi tesis ni datos personales.
+
+Comando de Python: usa el que funcione en mi sistema (`py -3` en Windows; `python3` en macOS y
+Linux). Donde abajo diga `python`, significa ese comando. Pregúntame mi sistema si no lo sabes.
+
+PASO 1 — Mi computadora
+- Pregúntame si uso Windows, macOS o Linux (iPhone/iPad no sirven: no pueden instalar Python).
+- Revisa si tengo Python 3.9 o superior (`py -3 --version` o `python3 --version`).
+- Si no está, explícame que es un programa gratuito necesario y PÍDEME PERMISO para instalarlo:
+  Windows: `winget install Python.Python.3.13` (o python.org marcando «Add python.exe to PATH»);
+  macOS: `brew install python` (o python.org/downloads/macos); Linux: `sudo apt install python3
+  python3-venv python3-pip`.
+- Git NO es obligatorio. No lo instales ahora.
+
+PASO 2 — Carpeta de trabajo
+- Pregúntame dónde crearla. Propón `Documentos/MiTesis`.
+- Descarga la plantilla SIN git:
+  Windows PowerShell:
+    Invoke-WebRequest https://github.com/jhoel0521/plantilla-docs-apa/archive/refs/heads/main.zip -OutFile plantilla.zip
+    Expand-Archive plantilla.zip . ; Rename-Item plantilla-docs-apa-main MiTesis ; Remove-Item plantilla.zip
+  macOS/Linux:
+    curl -L -o plantilla.zip https://github.com/jhoel0521/plantilla-docs-apa/archive/refs/heads/main.zip
+    unzip plantilla.zip && mv plantilla-docs-apa-main MiTesis && rm plantilla.zip
+- Si ya tengo git instalado, puedes clonar en su lugar y luego borrar la carpeta `.git` de MiTesis.
+- Conserva el archivo LICENSE (es la licencia de la plantilla; no afecta a mi tesis).
+
+PASO 3 — Preparar
+- Dentro de MiTesis: `python scripts/verificar_entorno.py --instalar`. Repite hasta que no haya
+  [ERROR]. Si el sistema impide instalar librerías (error «externally-managed-environment»), el
+  propio verificador crea una carpeta `.venv/` y los demás scripts la usan solos. Explícame los
+  [AVISO] en una frase.
+
+PASO 4 — Mi documento
+- Pregúntame dónde está mi .docx. Si está en Google Docs, dime cómo descargarlo
+  (Archivo → Descargar → Microsoft Word). Si es .doc u .odt, que lo guarde como .docx.
+- Importa: `python scripts/importar_docx.py "<ruta>"` (mi archivo original NO se modifica).
+- Muéstrame el resumen: capítulos creados, tablas, figuras, porcentaje de palabras y avisos.
+  Si el porcentaje es bajo o los capítulos no coinciden con mi índice, revisa conmigo antes de
+  seguir (puede que mi Word no use los estilos Título 1/2/3; explícame cómo aplicarlos y
+  reimporta).
+- Si NO tengo documento: pregúntame el índice que pide mi universidad y crea un archivo por
+  capítulo en `capitulos/`.
+
+PASO 5 — Portada y formato
+- Lee `original/portada.txt` y propónme los valores de `.env` (AUTOR, UNIVERSIDAD, FACULTAD,
+  CARRERA, GRADO, TUTOR, CIUDAD, FECHA). CONFÍRMALOS conmigo uno por uno y escríbelos SOLO en `.env`.
+- Pregúntame: título exacto, si mi facultad usa «Tabla» o «Cuadro», «Figura» o «Gráfico»,
+  tamaño de papel y si tengo el logo de la universidad (va en recursos/logos/logo.png).
+  Ajusta `documento.toml`.
+
+PASO 6 — Generar y comparar
+- `python scripts/generar_docx.py`. Dime dónde quedó el documento (`dist/`) y cómo actualizar el
+  índice: en Word (Windows o Mac) responder «Sí» a «¿actualizar campos?»; en LibreOffice,
+  Herramientas → Actualizar → Todos los índices y tablas.
+- Lista las marcas [[revisar: …]] que quedaron (ecuaciones, notas al pie, cuadros de texto,
+  imágenes EMF) y ayúdame a resolverlas una por una.
+- Pídeme que compare con mi original y corrige juntos lo que no coincida.
+
+PASO 7 — Versiones (opcional)
+- Explícame en una frase qué es guardar versiones y pregúntame si lo quiero.
+  - Si NO: recomiéndame copiar la carpeta con la fecha antes de cada revisión con mi tutor.
+  - Si SÍ: pide permiso para instalar git (`winget install Git.Git`), luego `git init`,
+    comprueba que `.env`, `original/` y `dist/` están ignorados y guarda la primera versión
+    (`git add -A && git commit -m "Primera versión importada"`). No lo subas a internet salvo que
+    yo lo pida, y si lo pido, en un repositorio PRIVADO.
+
+PASO 8 — Cómo sigo
+- Explícame las tres formas de seguir (GUIA_ESTUDIANTES.md, paso 6): pedirte cambios a ti,
+  editar los capítulos con Obsidian o VS Code, o seguir en Word y reimportar. Recomiéndame
+  una sola y adviérteme que no las mezcle.
+
+Reglas permanentes: lee AGENTS.md. Nunca modifiques mi Word original ni un .docx generado;
+nunca uses --forzar sin mi permiso; nunca copies mis datos personales fuera de .env.
+```
+
+---
+
+## Prompt A, a mano
 
 ```bash
 cd ~/mi-proyecto                                  # 1. proyecto real
@@ -85,9 +184,8 @@ rm -rf docs/.git
 git add docs && git commit -m "docs: integrar template de documentación APA 7"
 # 3.2 no tiene git → decidir: fork (git -C docs remote rename origin template),
 #     independiente (rm -rf docs/.git && git init) — conservar LICENSE en ambos casos
-python docs/scripts/verificar_entorno.py --instalar   # 4.
-cp docs/.env.example docs/.env                        # 5. y completarlo
-python docs/scripts/generar_docx.py                   # 7.
+python3 docs/scripts/verificar_entorno.py --instalar  # 4. (Windows: py -3). Crea docs/.env: complétalo
+python3 docs/scripts/generar_docx.py                  # 7.
 ```
 
 ## Traer mejoras del template a un proyecto que borró `.git`
@@ -97,7 +195,7 @@ Los scripts son independientes del contenido, así que basta con reemplazar `scr
 ```bash
 git clone --depth 1 https://github.com/jhoel0521/plantilla-docs-apa.git /tmp/template
 cp /tmp/template/scripts/*.py docs/scripts/
-python docs/scripts/verificar_entorno.py && python docs/scripts/generar_docx.py
+python3 docs/scripts/verificar_entorno.py && python3 docs/scripts/generar_docx.py
 git diff docs/scripts      # revisar antes del commit
 ```
 

@@ -4,7 +4,7 @@ Lee y cumple primero **@AGENTS.md** (reglas comunes) y **@README.md** (manual y 
 
 ## Reglas para Claude
 - Responde en español.
-- Antes de generar el documento, ejecuta `python docs/scripts/verificar_entorno.py`.
+- Antes de generar el documento, ejecuta `python docs/scripts/verificar_entorno.py` (`python3` en Mac/Linux).
 - Para revisar el avance usa `python docs/scripts/generar_docx.py --estado`, no abras el `.docx`.
 - Si el autor comparte el documento editado, pídele una conversión a `.md` para leerlo; no edites
   el `.docx`.
