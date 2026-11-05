@@ -90,10 +90,11 @@ def instalar_librerias():
     """Instala con pip; si el sistema lo rechaza (PEP 668), usa un entorno aislado .venv/.
     Devuelve 'pip', 'venv' o None."""
     req = str(DOCS / "requirements.txt")
-    r = subprocess.run([sys.executable, "-m", "pip", "install", "-r", req], capture_output=True,
-                       text=True, encoding="utf-8", errors="replace")
-    if r.returncode == 0:
-        return "pip"
+    if not os.environ.get("PLANTILLA_FORZAR_VENV"):  # variable solo para probar el camino .venv
+        r = subprocess.run([sys.executable, "-m", "pip", "install", "-r", req], capture_output=True,
+                           text=True, encoding="utf-8", errors="replace")
+        if r.returncode == 0:
+            return "pip"
     print("    pip no pudo instalar en el sistema (normal en Debian/Ubuntu/Homebrew); "
           "creo un entorno aislado en .venv/ ...")
     v = subprocess.run([sys.executable, "-m", "venv", str(_entorno.VENV)], capture_output=True,
@@ -250,7 +251,14 @@ def main():
         if modo == "venv":
             print("    listo: los scripts usarán .venv/ automáticamente\n")
             _entorno.relanzar()  # vuelve a ejecutar esta verificación dentro de .venv/
-        elif modo is None:
+        elif modo == "pip":
+            # pip puede instalar en una carpeta de usuario que este Python aún no conoce: vuelve a
+            # ejecutar la verificación en un proceso nuevo (una sola vez).
+            if not os.environ.get("PLANTILLA_REINTENTO"):
+                print("    listo; vuelvo a verificar\n")
+                sys.exit(subprocess.run([sys.executable, *sys.argv],
+                                        env={**os.environ, "PLANTILLA_REINTENTO": "1"}).returncode)
+        else:
             print()
 
     print(f"Verificando {DOCS}\n")

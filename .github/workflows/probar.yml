@@ -39,8 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip
-      - name: Instalar con el Python del sistema (cae a .venv)
+      - name: Instalar con el Python del sistema, forzando el camino .venv (como en PEP 668)
         run: python3 scripts/verificar_entorno.py --instalar
+        env:
+          PLANTILLA_FORZAR_VENV: "1"
       - name: Prueba de humo dentro de .venv
         run: python3 scripts/prueba_humo.py
       - name: Confirmar que se creó .venv
