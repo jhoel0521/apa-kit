@@ -40,9 +40,14 @@ def main():
     ok("<html> declara el idioma", '<html lang="es">' in html)
 
     # Correcciones de la auditoría UX
-    botones = re.findall(r"<button[^>]*data-copy[^>]*>[^<]*</button>", html)
-    nombres = [(re.search(r'aria-label="([^"]*)"', b) or re.search(r">([^<]*)<", b)).group(1) for b in botones]
-    ok("los botones de copiar tienen nombre accesible distinto", len(botones) >= 3 and len(set(nombres)) == len(nombres), str(nombres))
+    botones = re.findall(r"<button[^>]*data-copy[^>]*>", html)
+    nombres = [m.group(1) if (m := re.search(r'aria-label="([^"]*)"', b)) else "" for b in botones]
+    ok("los botones de copiar tienen nombre accesible distinto", len(botones) >= 3 and all(nombres) and len(set(nombres)) == len(nombres), str(nombres))
+    bloques = re.findall(r'<div class="snippet">\s*<pre[^>]*><code id="([^"]+)">.*?</code></pre>\s*<button class="copy" data-copy="([^"]+)"', html, re.S)
+    ok("cada botón de copiar va dentro de su bloque de código y copia ese bloque",
+       len(bloques) == len(botones) and all(a == b for a, b in bloques), str(bloques))
+    ok("los enlaces tienen color propio (no el azul del navegador en modo oscuro)", "a { color: var(--accent); }" in html)
+    ok("los botones no parten su texto (misma altura)", re.search(r"\.btn \{[^}]*white-space: nowrap", html) is not None)
     ok("el aviso del móvil va antes de los botones principales", 0 <= html.find('id="movil"') < html.find('class="btns"'))
     ok("la descarga principal es un botón (.btn)", bool(re.search(r'<a class="btn" href="[^"]*apa-kit-cowork\.zip"', html)))
     ok("los controles tienen altura mínima de 44 px (nav, logo, resúmenes)",
