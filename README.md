@@ -27,6 +27,17 @@ en Markdown, un script los convierte en Word con formato APA 7 y git guarda cada
 Necesitas **Python 3.9 o superior** en el equipo donde el agente ejecuta comandos (Windows, macOS o Linux;
 iPhone y iPad no sirven). La primera vez, `apa-init` instala `python-docx` y `Pillow` por ti.
 
+### Si tu agente no admite skills
+Pégale esto, con la carpeta de trabajo abierta:
+
+```text
+Quiero escribir un documento en formato APA 7 con apa-kit. Clona https://github.com/jhoel0521/apa-kit
+(git clone --depth 1) en una carpeta TEMPORAL fuera de mi proyecto, lee skills/apa-guia/SKILL.md y
+skills/apa-init/SKILL.md, y sigue apa-init paso a paso usando esa carpeta como ASSETS
+(skills/apa-init/assets). No escribas dentro de la carpeta clonada; todo se crea en mi carpeta de trabajo.
+Pregúntame antes de instalar algo y no inventes datos ni referencias.
+```
+
 ## Usarlo
 Abre el agente en una carpeta de trabajo y dile lo que quieres, con tus palabras:
 

@@ -148,7 +148,12 @@ def migrar(proyecto, carpeta):
     print(f"OK {carpeta}/documento.toml: escritas {len(nuevos)} clave(s) del diseño antiguo "
           f"({', '.join(k for k, _ in EXPLICITOS_ANTIGUOS if any(n.startswith(k + ' ') for n in nuevos)) or 'ninguna'})")
     print(f"OK motor nuevo en .apa/scripts/. {carpeta}/dist/ y su protección del .docx editado siguen intactos.")
-    print(f"   {carpeta}/scripts/ y {carpeta}/requirements.txt ya no se usan; puedes borrarlos cuando quieras.")
+    obsoletos = [n for n in ("scripts", "requirements.txt", "AGENTS.md", "CLAUDE.md", "PROMPT_INICIAL.md",
+                             "GUIA_ESTUDIANTES.md", "README.md") if (doc / n).exists()]
+    if obsoletos:
+        print(f"AVISO de la plantilla antigua que ya no se usa en {carpeta}/: {', '.join(obsoletos)}")
+        print("   Su AGENTS.md y CLAUDE.md mandan a los agentes a scripts/ (el motor viejo). Bórralos con el usuario,")
+        print("   conservando LICENSE. No se borran solos.")
 
 
 def main():

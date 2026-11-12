@@ -39,11 +39,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip
-      - name: Crear un proyecto con el Python del sistema
+      - name: Crear un proyecto con DOS documentos usando el Python del sistema
+        # Con dos documentos, --doc debe sobrevivir al relanzamiento dentro de .apa/.venv.
         run: |
           mkdir "$RUNNER_TEMP/proyecto"
           cd "$RUNNER_TEMP/proyecto"
           python3 -B "$GITHUB_WORKSPACE/skills/apa-init/assets/scripts/iniciar.py" --tipo tesis --destino tesis
+          python3 -B "$GITHUB_WORKSPACE/skills/apa-init/assets/scripts/iniciar.py" --tipo articulo --destino articulo
       - name: Instalar forzando el camino .venv (como en PEP 668)
         working-directory: ${{ runner.temp }}/proyecto
         run: python3 .apa/scripts/verificar_entorno.py --instalar --doc tesis

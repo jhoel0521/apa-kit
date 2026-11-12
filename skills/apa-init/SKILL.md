@@ -53,6 +53,19 @@ solos. Repite hasta 0 `[ERROR]`; explica los `[AVISO]` en una frase. No instales
 Luego completa `<carpeta>/.env` **con el usuario**, valor por valor, y ajusta `<carpeta>/documento.toml`
 (título, `salida`, papel, etiquetas). Datos personales solo en `.env`.
 
+## 3.1 Reglas para los agentes del proyecto (pregunta antes)
+Pregunta al usuario si quiere dejar escrito, en el `AGENTS.md` o `CLAUDE.md` de su carpeta de trabajo, cómo debe
+comportarse cualquier agente futuro con su documento. Si acepta y el archivo **no contiene ya** la marca
+`apa-kit`, **añade al final** (sin tocar el resto; si el archivo no existe, créalo):
+```markdown
+## Documento APA 7 (apa-kit)
+- Los documentos viven en <carpeta del documento>/capitulos/*.md; el motor está en .apa/scripts/ (no se edita).
+- Edita solo los .md, recursos/ y documento.toml. Nunca un .docx. No inventes datos, citas ni referencias.
+- Datos personales solo en <carpeta del documento>/.env; en los .md usa {{CLAVE}}.
+- Para trabajar usa las skills apa-escribir, apa-revisar y apa-generar (o lee skills/apa-guia).
+- Sin commit ni push sin que el usuario lo pida.
+```
+
 ## 4. Versiones con git (recomendado, opcional)
 Explica en una frase: «git guarda cada versión de tu documento, así puedes volver atrás». Si el usuario
 quiere y git no está instalado, pide permiso antes de instalarlo. Si no hay repositorio: `git init` en la
@@ -74,7 +87,9 @@ python -B ASSETS/scripts/iniciar.py --migrar docs
 Copia el motor a `.apa/scripts/` y escribe en `docs/documento.toml` las opciones que antes eran
 implícitas (`numerar_titulos`, `salto_nivel1`, `idioma`, `salida`), para que el documento salga **igual que
 antes**. No toca `dist/`, así que la protección del Word editado a mano sigue vigente. Después, genera con
-**apa-generar** y compara. `docs/scripts/` ya no se usa: ofrece borrarlo, pero no lo borres sin permiso.
+**apa-generar** y compara. El script lista lo obsoleto de la plantilla antigua (`docs/scripts/`,
+`requirements.txt`, y sobre todo el `AGENTS.md` y `CLAUDE.md` viejos, que mandan a los agentes al motor
+anterior). Pregunta al usuario y bórralos con su permiso, conservando `LICENSE`; no los borres solos.
 
 ## 7. Cierre
 Resume: tipo y carpeta creados, si hay git, qué falta en `.env`, y el siguiente paso:

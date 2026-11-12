@@ -51,6 +51,14 @@ def buscar_documentos():
 
 
 def carpeta_documento():
+    ruta = _resolver()
+    # Se exporta para que un script que se relance a sí mismo (dentro de .apa/.venv o tras instalar con pip)
+    # conserve el documento elegido aunque `--doc` ya se haya quitado de sys.argv.
+    os.environ["APA_DOC"] = str(ruta)
+    return ruta
+
+
+def _resolver():
     explicito = _quitar_opcion_doc() or os.environ.get("APA_DOC")
     if explicito:
         ruta = Path(explicito).expanduser().resolve()

@@ -86,6 +86,43 @@ def titulos_nivel1(docx):
             for p in Document(docx).paragraphs if p.style.name == "Heading 1"]
 
 
+def comprobar_frontmatter(ruta, nombre_esperado):
+    """YAML válido sin depender de PyYAML: sin «: » ni « #» dentro de valores sin comillas; name = carpeta."""
+    import re
+    texto = ruta.read_text(encoding="utf-8").replace("\r\n", "\n")
+    m = re.match(r"---\n(.*?)\n---\n", texto, re.S)
+    if not ok(f"{ruta.parent.name}: SKILL.md tiene frontmatter", m is not None):
+        return
+    campos = {}
+    for ln in m.group(1).splitlines():
+        sup = re.match(r"^([a-z][\w-]*):(?:\s+(.*))?$", ln)              # clave de primer nivel
+        if sup:
+            campos[sup.group(1)] = sup.group(2) or ""
+            valor = sup.group(2) or ""
+            if valor and valor[0] not in "\"'" and (": " in valor or " #" in valor):
+                ok(f"{ruta.parent.name}: YAML válido en «{sup.group(1)}»", False, valor[:60])
+        elif not re.match(r"^\s{2}[a-z][\w-]*:\s", ln):
+            ok(f"{ruta.parent.name}: línea de frontmatter reconocible", False, ln[:60])
+    ok(f"{ruta.parent.name}: name = «{nombre_esperado}»", campos.get("name") == nombre_esperado, str(campos.get("name")))
+    ok(f"{ruta.parent.name}: tiene description y license", bool(campos.get("description")) and bool(campos.get("license")))
+    try:
+        import yaml  # solo si está instalado: parser real
+        datos = yaml.safe_load(m.group(1))
+        ok(f"{ruta.parent.name}: lo acepta un parser YAML real", isinstance(datos, dict))
+    except ImportError:
+        pass
+    except Exception as e:
+        ok(f"{ruta.parent.name}: lo acepta un parser YAML real", False, str(e)[:80])
+
+
+def probar_skills():
+    carpetas = sorted(p for p in (REPO / "skills").iterdir() if (p / "SKILL.md").exists())
+    ok("existen las seis skills", [p.name for p in carpetas] ==
+       ["apa-escribir", "apa-generar", "apa-guia", "apa-importar", "apa-init", "apa-revisar"], str([p.name for p in carpetas]))
+    for p in carpetas:
+        comprobar_frontmatter(p / "SKILL.md", p.name)
+
+
 def probar_tipos(tmp):
     """Cada tipo: iniciar.py -> generar_docx.py -> el .docx respeta numeración y saltos del tipo."""
     antes = listado(ASSETS.parent)
@@ -115,6 +152,10 @@ def probar_tipos(tmp):
 
     code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--estado")
     ok("con varios documentos pide elegir con --doc", code != 0 and "--doc" in sal, sal[-200:])
+    code, sal = correr(proyecto, "-c", "import sys; sys.path.insert(0, '.apa/scripts'); sys.argv = ['x', '--doc', 'libre']; "
+                                       "import os, _raiz; _raiz.carpeta_documento(); print(os.environ['APA_DOC'])")
+    ok("--doc se exporta a APA_DOC (sobrevive al relanzar dentro de .venv)",
+       code == 0 and sal.strip().endswith("libre"), sal[-200:])
 
     code, sal = correr(proyecto, ".apa/scripts/verificar_entorno.py", "--doc", "tesis")
     ok("verificar_entorno.py termina sin errores", code == 0, sal[-400:])
@@ -175,6 +216,7 @@ def probar_paquete(tmp):
     extraido = tmp / "cowork"
     zipfile.ZipFile(salida / "apa-kit-cowork.zip").extractall(extraido)
     skill = extraido / "apa-kit"
+    comprobar_frontmatter(skill / "SKILL.md", "apa-kit")
     ok("el paquete único trae SKILL.md, flujos y referencias",
        all((skill / x).exists() for x in ("SKILL.md", "flujos/apa-init.md", "flujos/apa-revisar.md", "references/sintaxis.md")))
     antes = listado(skill)
@@ -262,6 +304,8 @@ def probar_migrar(tmp):
     huellas.write_text(json.dumps({"Documento.docx": "abc"}), encoding="utf-8")
     code, sal = correr(proyecto, INICIAR, "--migrar", "docs")
     ok("--migrar convierte el diseño antiguo", code == 0, sal[-300:])
+    ok("--migrar avisa de lo obsoleto de la plantilla antigua", "AVISO de la plantilla antigua" in sal and "scripts" in sal, sal)
+    ok("--migrar no borra nada solo", (proyecto / "docs" / "scripts" / "generar_docx.py").exists())
     ok("--migrar conserva dist/.huellas.json", huellas.exists() and json.loads(huellas.read_text())["Documento.docx"] == "abc")
     texto = (proyecto / "docs" / "documento.toml").read_text(encoding="utf-8")
     for clave in ("numerar_titulos = true", "salto_nivel1 = true", 'idioma = "es-BO"', 'salida = "Documento"'):
@@ -286,6 +330,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     with tempfile.TemporaryDirectory(prefix="apa-kit-humo-") as tmp:
         tmp = Path(tmp)
+        probar_skills()
         proyecto = probar_tipos(tmp)
         probar_demas_tipos(tmp)
         probar_paquete(tmp)

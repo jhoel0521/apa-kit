@@ -1,8 +1,8 @@
 ---
 name: apa-guia
-description: Reglas y sintaxis para escribir cualquier documento académico en formato APA 7 con apa-kit (tesis, trabajo, informe, monografía; de cualquier carrera: derecho, lengua, filosofía, ingeniería…). Explica cómo se escribe cada capítulo en Markdown, cómo citar tablas y figuras, qué decide el autor y qué hace el generador, y las reglas para que un agente no invente datos ni referencias. Úsala cuando el usuario pregunte "cómo escribo en APA", "cómo pongo una tabla o figura", "cómo cito", "qué sintaxis uso" o cuando vayas a editar capítulos de un documento apa-kit.
+description: Reglas y sintaxis para escribir cualquier documento académico en formato APA 7 con apa-kit (tesis, trabajo, informe, monografía) de cualquier carrera, como derecho, lengua, filosofía o ingeniería. Explica cómo se escribe cada capítulo en Markdown, cómo citar tablas y figuras, qué decide el autor y qué hace el generador, y las reglas para que un agente no invente datos ni referencias. Úsala cuando el usuario pregunte "cómo escribo en APA", "cómo pongo una tabla o figura", "cómo cito", "qué sintaxis uso" o cuando vayas a editar capítulos de un documento apa-kit.
 license: MIT
-compatibility: Cualquier agente que admita SKILL.md. Es solo documentación: no ejecuta nada.
+compatibility: Cualquier agente que admita SKILL.md. Es solo documentación y no ejecuta nada.
 metadata:
   version: "0.2.0"
   kit: apa-kit
