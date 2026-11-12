@@ -150,6 +150,43 @@ def probar_sincronizar(proyecto):
     ok("--sincronizar no toca los capítulos", huella_carpeta(proyecto / "libre" / "capitulos") == caps)
 
 
+def probar_revisar(proyecto):
+    """revisar.py lista candidatos: una cita sin referencia, una referencia sin cita y las marcas."""
+    caps = proyecto / "libre" / "capitulos"
+    capitulo = "\n".join([
+        "# Introducción",
+        "",
+        "Según Kelsen (1960) la norma es el origen. Lo discuten (Pérez & Díaz, 2020; García et al., 2018a).",
+        "El marco es amplio (American Psychological Association [APA], 2020, p. 12). [[pendiente: agregar cifra]]",
+        "",
+        "```",
+        "(Ejemplo, 1999) código ignorado",
+        "```",
+        "<!-- (Oculto, 2001) comentario ignorado -->",
+        ""])
+    referencias = "\n".join([
+        "# Referencias {.sin-numero}",
+        "",
+        "American Psychological Association. (2020). *Manual*. APA.",
+        "Kelsen, H. (1960). Teoría pura del derecho. Eudeba.",
+        "García, M., & Ruiz, P. (2018). Sobre normas. X. [[verificar]]",
+        "Rawls, J. (1971). *A theory of justice*. Harvard University Press.",
+        ""])
+    (caps / "01-primera-seccion.md").write_text(capitulo, encoding="utf-8")
+    (caps / "90-referencias.md").write_text(referencias, encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre")
+    ok("revisar.py termina con código 0", code == 0, sal[-200:])
+    ok("revisar.py detecta la cita sin referencia (Pérez)", "Pérez (2020)" in sal, sal)
+    ok("revisar.py detecta la referencia sin cita (Rawls)", "Rawls (1971)" in sal, sal)
+    ok("revisar.py no marca lo bien citado (Kelsen, García 2018a, APA)",
+       not any(f"{a} (" in sal.split("Referencias que no se citan")[0].split("Citas sin referencia")[1]
+               for a in ("Kelsen", "García", "American")), sal)
+    ok("revisar.py ignora código y comentarios", "Ejemplo" not in sal and "Oculto" not in sal, sal)
+    ok("revisar.py cuenta pendiente y verificar", "Pendientes: 1" in sal and "Por verificar" in sal and ": 1" in sal)
+    code, _ = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre", "--estricto")
+    ok("revisar.py --estricto termina con código 1 si queda algo", code == 1)
+
+
 def probar_migrar(tmp):
     """Un documento del diseño antiguo se genera igual que antes y sigue protegido contra regeneración."""
     proyecto = tmp / "antiguo"
@@ -186,6 +223,7 @@ def main():
         proyecto = probar_tipos(tmp)
         probar_importar(tmp, proyecto)
         probar_sincronizar(proyecto)
+        probar_revisar(proyecto)
         probar_migrar(tmp)
     print("\nRESULTADO:", "todo bien" if not fallos else f"{len(fallos)} fallo(s): " + "; ".join(fallos))
     sys.exit(1 if fallos else 0)
