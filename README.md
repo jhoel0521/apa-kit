@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/img/logo.png" width="120" alt="apa-kit"></p>
+<p align="center"><a href="https://jhoel0521.github.io/apa-kit/"><img src="docs/img/logo.png" width="120" alt="Sitio de apa-kit"></a></p>
 
 <h1 align="center">apa-kit</h1>
 

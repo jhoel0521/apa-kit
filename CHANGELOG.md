@@ -4,7 +4,7 @@ Versionado semántico en fase de desarrollo (`0.x`): puede haber cambios grandes
 
 ## Sin publicar
 ### Nuevo
-- Logo provisional en el README y archivos para compartir en `docs/img/` (logo, imagen social de GitHub, historia vertical).
+- Logo en el README y archivos para compartir en `docs/img/` (logo, imagen social de GitHub, historia vertical).
 
 ### Corrige
 - Tablas: una tabla que cabía en una página podía partirse, con el título y dos filas al pie de una hoja y el resto en la
