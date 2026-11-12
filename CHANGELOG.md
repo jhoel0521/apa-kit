@@ -3,6 +3,10 @@
 Versionado semántico en fase de desarrollo (`0.x`): puede haber cambios grandes entre versiones menores.
 
 ## Sin publicar
+### Cambia
+- El sitio web pasa de la rama `gh-pages` a la carpeta `sitio/` de `main`, con validación en cada PR (`tests/probar_sitio.py`) y publicación automática (`.github/workflows/sitio.yml`).
+- `herramientas/arte/preparar_arte.py` genera el logo y las imágenes para compartir a partir de las imágenes de la IA.
+
 ### Corrige
 - Tablas: una tabla que cabía en una página podía partirse, con el título y dos filas al pie de una hoja y el resto en la
   siguiente. Ahora ninguna fila se parte y cada tabla va atada a su título y a su nota: si cabe en una página, Word la mueve

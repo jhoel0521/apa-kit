@@ -1,0 +1,47 @@
+name: sitio
+
+# El sitio (https://jhoel0521.github.io/apa-kit/) vive en la carpeta sitio/ de main.
+# En cada PR que lo toca se valida; al fusionar en main se publica en GitHub Pages.
+on:
+  pull_request:
+    paths: ["sitio/**", "tests/probar_sitio.py", ".github/workflows/sitio.yml"]
+  push:
+    branches: [main]
+    paths: ["sitio/**", ".github/workflows/sitio.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Revisar etiquetas, SEO, imágenes y sitemap
+        run: python tests/probar_sitio.py
+
+  publicar:
+    needs: validar
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: sitio
+      - id: despliegue
+        uses: actions/deploy-pages@v4
