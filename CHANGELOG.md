@@ -11,6 +11,12 @@ Versionado semántico en fase de desarrollo (`0.x`): puede haber cambios grandes
 - `herramientas/arte/preparar_arte.py` genera el logo y las imágenes para compartir a partir de las imágenes de la IA.
 
 ### Corrige
+- Sitio web (auditoría UX): enlaces de navegación, logo, resúmenes de preguntas y botones miden 44 px o más; la descarga del
+  Cowork es el botón principal de «Instalar» y «Copiar texto» pasa a secundario; el aviso para móviles va antes de los botones;
+  los botones heredan la fuente de la página; la tipografía se reduce a 4 tamaños (15, 17, 24 y 28/40 px); los dos botones
+  «Copiar» tienen nombre accesible distinto; «Copiado» indica el siguiente paso; el iPad se reconoce como móvil (sin probar en
+  un iPad real); logo de cabecera de 5 KB en lugar de 42 KB; se borra CSS sin uso. Medido con Edge a 320, 375 y 1280 px,
+  en tema claro y oscuro, sin desborde horizontal. `tests/probar_sitio.py` fija estas correcciones.
 - Tablas: una tabla que cabía en una página podía partirse, con el título y dos filas al pie de una hoja y el resto en la
   siguiente. Ahora ninguna fila se parte y cada tabla va atada a su título y a su nota: si cabe en una página, Word la mueve
   entera; si es más alta, la parte y repite el encabezado. En un barrido de 40 tablas en Word, pasó de 9 rotas a 0 con las
