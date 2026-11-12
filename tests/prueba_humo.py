@@ -1,0 +1,346 @@
+"""Prueba de humo de apa-kit: prepara proyectos temporales con iniciar.py y genera documentos reales.
+
+Uso:  python3 tests/prueba_humo.py        (en Windows: py -3 tests/prueba_humo.py)
+Termina con código 0 si todo funciona. No toca nada fuera de una carpeta temporal.
+Sirve para comprobar una instalación nueva (Windows, macOS, Linux) y como prueba automática en CI.
+Requiere python-docx y Pillow (python3 skills/apa-init/assets/scripts/verificar_entorno.py --instalar
+instala lo que falte, pero lo hace dentro de .apa/, así que en el repo usa: pip install -r
+skills/apa-init/assets/scripts/requirements.txt).
+"""
+import hashlib
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[1]
+ASSETS = REPO / "skills" / "apa-init" / "assets"
+INICIAR = ASSETS / "scripts" / "iniciar.py"
+FIXTURES = REPO / "tests" / "fixtures"
+
+fallos = []
+
+
+def ok(nombre, condicion, detalle=""):
+    print(("OK    " if condicion else "FALLO ") + nombre + (f"  [{detalle}]" if detalle and not condicion else ""))
+    if not condicion:
+        fallos.append(nombre)
+    return condicion
+
+
+def correr(cwd, *args):
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "APA_SIN_VENV": "1", "PYTHONDONTWRITEBYTECODE": "1"}
+    env.pop("APA_DOC", None)
+    r = subprocess.run([sys.executable, "-B", *map(str, args)], cwd=cwd, capture_output=True, text=True,
+                       encoding="utf-8", errors="replace", env=env)
+    return r.returncode, (r.stdout + r.stderr).strip()
+
+
+def listado(base):
+    return sorted(str(p.relative_to(base)) for p in base.rglob("*") if "__pycache__" not in p.parts)
+
+
+def huella_carpeta(base):
+    h = hashlib.sha256()
+    for p in sorted(base.rglob("*")):
+        if p.is_file():
+            h.update(str(p.relative_to(base)).encode() + p.read_bytes())
+    return h.hexdigest()
+
+
+def crear_word(ruta, imagen):
+    from docx import Document
+    d = Document()
+    d.add_heading("Capítulo I. Introducción", 1)
+    p = d.add_paragraph("El presente trabajo analiza la norma según el Cuadro 1 y la ")
+    p.add_run("Figura 1").bold = True
+    p.add_run(". Incluye ")
+    p.add_run("cursiva").italic = True
+    p.add_run(" y acentos: ñ, á, é, í, ó, ú, ü.")
+    d.add_heading("1.1. Planteamiento del problema", 2)
+    d.add_paragraph("Primer elemento", style="List Bullet")
+    d.add_paragraph("Segundo elemento", style="List Bullet")
+    cap = d.add_paragraph()
+    cap.add_run("Cuadro 1").bold = True
+    d.add_paragraph("Comparación de normas")
+    t = d.add_table(rows=3, cols=2)
+    for i, fila in enumerate([("Norma", "Artículo"), ("Código Civil", "984"), ("Ley 1178", "31")]):
+        for j, v in enumerate(fila):
+            t.cell(i, j).text = v
+    d.add_paragraph("Fuente: Elaboración propia.")
+    d.add_picture(str(imagen))
+    d.add_paragraph("Figura 1. Imagen de prueba")
+    d.add_heading("Capítulo II. Marco teórico", 1)
+    d.add_paragraph("Según Kelsen (1960), la norma fundamental es el punto de partida.")
+    d.add_heading("Referencias", 1)
+    d.add_paragraph("Kelsen, H. (1960). Teoría pura del derecho. Eudeba.")
+    d.save(ruta)
+
+
+def titulos_nivel1(docx):
+    from docx import Document
+    return [(p.text, bool(p.paragraph_format.page_break_before))
+            for p in Document(docx).paragraphs if p.style.name == "Heading 1"]
+
+
+def comprobar_frontmatter(ruta, nombre_esperado):
+    """YAML válido sin depender de PyYAML: sin «: » ni « #» dentro de valores sin comillas; name = carpeta."""
+    import re
+    texto = ruta.read_text(encoding="utf-8").replace("\r\n", "\n")
+    m = re.match(r"---\n(.*?)\n---\n", texto, re.S)
+    if not ok(f"{ruta.parent.name}: SKILL.md tiene frontmatter", m is not None):
+        return
+    campos = {}
+    for ln in m.group(1).splitlines():
+        sup = re.match(r"^([a-z][\w-]*):(?:\s+(.*))?$", ln)              # clave de primer nivel
+        if sup:
+            campos[sup.group(1)] = sup.group(2) or ""
+            valor = sup.group(2) or ""
+            if valor and valor[0] not in "\"'" and (": " in valor or " #" in valor):
+                ok(f"{ruta.parent.name}: YAML válido en «{sup.group(1)}»", False, valor[:60])
+        elif not re.match(r"^\s{2}[a-z][\w-]*:\s", ln):
+            ok(f"{ruta.parent.name}: línea de frontmatter reconocible", False, ln[:60])
+    ok(f"{ruta.parent.name}: name = «{nombre_esperado}»", campos.get("name") == nombre_esperado, str(campos.get("name")))
+    ok(f"{ruta.parent.name}: tiene description y license", bool(campos.get("description")) and bool(campos.get("license")))
+    try:
+        import yaml  # solo si está instalado: parser real
+        datos = yaml.safe_load(m.group(1))
+        ok(f"{ruta.parent.name}: lo acepta un parser YAML real", isinstance(datos, dict))
+    except ImportError:
+        pass
+    except Exception as e:
+        ok(f"{ruta.parent.name}: lo acepta un parser YAML real", False, str(e)[:80])
+
+
+def probar_skills():
+    carpetas = sorted(p for p in (REPO / "skills").iterdir() if (p / "SKILL.md").exists())
+    ok("existen las seis skills", [p.name for p in carpetas] ==
+       ["apa-escribir", "apa-generar", "apa-guia", "apa-importar", "apa-init", "apa-revisar"], str([p.name for p in carpetas]))
+    for p in carpetas:
+        comprobar_frontmatter(p / "SKILL.md", p.name)
+
+
+def probar_tipos(tmp):
+    """Cada tipo: iniciar.py -> generar_docx.py -> el .docx respeta numeración y saltos del tipo."""
+    antes = listado(ASSETS.parent)
+    proyecto = tmp / "proyecto"
+    proyecto.mkdir()
+    for tipo, numerado, salta in (("tesis", True, True), ("libre", False, False)):
+        code, sal = correr(proyecto, INICIAR, "--tipo", tipo, "--destino", tipo)
+        ok(f"iniciar.py crea el tipo '{tipo}'", code == 0, sal[-300:])
+        if code != 0:
+            continue
+        code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", tipo)
+        ok(f"genera el tipo '{tipo}'", code == 0, sal[-300:])
+        docx = proyecto / tipo / "dist" / f"{ {'tesis': 'Tesis', 'libre': 'Documento'}[tipo] }.docx"
+        if not ok(f"existe dist/{docx.name}", docx.exists()):
+            continue
+        t1 = titulos_nivel1(docx)
+        cuerpo = [t for t in t1 if t[0] and not t[0].startswith(("Referencias", "Anexos"))]  # {.sin-numero}
+        ok(f"'{tipo}': títulos {'con' if numerado else 'sin'} «Capítulo N.»",
+           bool(cuerpo) and all(t[0].startswith("Capítulo") == numerado for t in cuerpo), str(t1))
+        ok(f"'{tipo}': nivel 1 {'empieza' if salta else 'NO empieza'} página nueva",
+           bool(cuerpo) and all(t[1] == salta for t in cuerpo), str(t1))
+        ref = [t for t in t1 if t[0].startswith("Referencias")]
+        ok(f"'{tipo}': Referencias siempre en página nueva", bool(ref) and ref[0][1] is True, str(t1))
+    ok("iniciar.py no escribió nada dentro de la skill", listado(ASSETS.parent) == antes)
+    ok("el motor quedó copiado en .apa/scripts/", (proyecto / ".apa" / "scripts" / "generar_docx.py").exists())
+    ok("cada documento trae su .gitignore", (proyecto / "tesis" / ".gitignore").exists())
+
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--estado")
+    ok("con varios documentos pide elegir con --doc", code != 0 and "--doc" in sal, sal[-200:])
+    code, sal = correr(proyecto, "-c", "import sys; sys.path.insert(0, '.apa/scripts'); sys.argv = ['x', '--doc', 'libre']; "
+                                       "import os, _raiz; _raiz.carpeta_documento(); print(os.environ['APA_DOC'])")
+    ok("--doc se exporta a APA_DOC (sobrevive al relanzar dentro de .venv)",
+       code == 0 and sal.strip().endswith("libre"), sal[-200:])
+
+    code, sal = correr(proyecto, ".apa/scripts/verificar_entorno.py", "--doc", "tesis")
+    ok("verificar_entorno.py termina sin errores", code == 0, sal[-400:])
+    return proyecto
+
+
+def probar_demas_tipos(tmp):
+    """Los tipos restantes se generan, y los trabajos profesionales traen encabezado, nota del autor y título repetido."""
+    from docx import Document
+    proyecto = tmp / "otros"
+    proyecto.mkdir()
+    esperado = {"trabajo-estudiante": "Trabajo", "informe": "Informe", "tesis-software": "Tesis", "articulo": "Articulo"}
+    for tipo, salida in esperado.items():
+        code, sal = correr(proyecto, INICIAR, "--tipo", tipo, "--destino", tipo)
+        ok(f"iniciar.py crea el tipo '{tipo}'", code == 0, sal[-300:])
+        code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", tipo)
+        docx = proyecto / tipo / "dist" / f"{salida}.docx"
+        if not ok(f"genera el tipo '{tipo}'", code == 0 and docx.exists(), sal[-400:]):
+            continue
+        d = Document(docx)
+        parrafos = [p.text for p in d.paragraphs]
+        encabezado = d.sections[0].header.paragraphs[0].text
+        titulos = titulos_nivel1(docx)
+        if tipo == "articulo":
+            ok("articulo: encabezado con título corto y número de página",
+               "TÍTULO CORTO" in encabezado and "PAGE" in d.sections[0].header.paragraphs[0]._p.xml, encabezado)
+            ok("articulo: nota del autor en la portada", "Nota del autor" in parrafos)
+            ok("articulo: el título se repite al comenzar el texto", sum("Título del artículo" in t for t in parrafos) == 2)
+            ok("articulo: sin números ni saltos en los títulos",
+               all(not t[0][:1].isdigit() and not t[1] for t in titulos if not t[0].startswith("Referencias")), str(titulos))
+        elif tipo == "trabajo-estudiante":
+            ok("trabajo-estudiante: sin encabezado de título corto", "TÍTULO" not in encabezado.upper(), encabezado)
+            ok("trabajo-estudiante: el título se repite al comenzar el texto",
+               sum("Título del trabajo" in t for t in parrafos) == 2)
+            ok("trabajo-estudiante: sin índice (no hay Heading de contenido)", not any(t == "Contenido" for t in parrafos))
+        elif tipo == "informe":
+            ok("informe: secciones numeradas «1. Introducción» sin salto de página",
+               any(t[0].startswith("1. ") for t in titulos) and not any(t[1] for t in titulos if t[0][:1].isdigit()), str(titulos))
+        elif tipo == "tesis-software":
+            ok("tesis-software: usa la variable NOMBRE_SISTEMA", any("Nombre del sistema" in t for t in parrafos))
+            ok("tesis-software: capítulos de análisis y pruebas", any("Desarrollo del Proyecto" in t[0] for t in titulos)
+               and any("Pruebas y Resultados" in t[0] for t in titulos), str(titulos))
+    code, sal = correr(proyecto, INICIAR, "--listar")
+    ok("iniciar.py --listar muestra los seis tipos",
+       all(t in sal for t in ("tesis", "tesis-software", "libre", "informe", "articulo", "trabajo-estudiante")), sal)
+
+
+def probar_paquete(tmp):
+    """El paquete único para Cowork funciona extraído en una carpeta cualquiera, sin el resto del repositorio."""
+    import zipfile
+    salida = tmp / "paquetes"
+    code, sal = correr(REPO, REPO / "herramientas" / "empaquetar.py", "--salida", salida)
+    ok("empaquetar.py crea los paquetes", code == 0 and (salida / "apa-kit-cowork.zip").exists(), sal[-300:])
+    for nombre in ("apa-kit-plugin.zip", "apa-init.zip", "apa-guia.zip"):
+        ok(f"existe {nombre}", (salida / nombre).exists())
+    if not (salida / "apa-kit-cowork.zip").exists():
+        return
+    extraido = tmp / "cowork"
+    zipfile.ZipFile(salida / "apa-kit-cowork.zip").extractall(extraido)
+    skill = extraido / "apa-kit"
+    comprobar_frontmatter(skill / "SKILL.md", "apa-kit")
+    ok("el paquete único trae SKILL.md, flujos y referencias",
+       all((skill / x).exists() for x in ("SKILL.md", "flujos/apa-init.md", "flujos/apa-revisar.md", "references/sintaxis.md")))
+    antes = listado(skill)
+    proyecto = tmp / "proyecto-cowork"
+    proyecto.mkdir()
+    code, sal = correr(proyecto, skill / "assets" / "scripts" / "iniciar.py", "--tipo", "articulo", "--destino", "mi-articulo")
+    ok("el paquete único crea un documento", code == 0, sal[-300:])
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py")
+    ok("el paquete único genera el Word", code == 0 and (proyecto / "mi-articulo" / "dist" / "Articulo.docx").exists(), sal[-300:])
+    ok("el paquete único no se modifica al usarlo", listado(skill) == antes)
+
+
+def probar_importar(tmp, proyecto):
+    from PIL import Image
+    Image.new("RGB", (200, 100), "#4477aa").save(tmp / "figura.png")
+    crear_word(tmp / "ejemplo.docx", tmp / "figura.png")
+    code, sal = correr(proyecto, ".apa/scripts/importar_docx.py", tmp / "ejemplo.docx", "--doc", "tesis")
+    ok("importa un Word", code == 0, sal[-300:])
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "tesis", "--forzar")
+    ok("genera el documento importado", code == 0, sal[-300:])
+    docx = proyecto / "tesis" / "dist" / "Tesis.docx"
+    if docx.exists():
+        from docx import Document
+        d = Document(docx)
+        textos = "\n".join(p.text for p in d.paragraphs)
+        ok("importado: tiene el capítulo Introducción", any("Introducción" in t for t, _ in titulos_nivel1(docx)))
+        ok("importado: conserva la tabla", len(d.tables) == 1)
+        ok("importado: conserva la figura", len(d.inline_shapes) == 1)
+        ok("importado: resuelve las referencias cruzadas", "@" not in textos)
+        ok("importado: conserva acentos y ñ", "ñ" in textos and "ü" in textos)
+
+
+def probar_sincronizar(proyecto):
+    caps = huella_carpeta(proyecto / "libre" / "capitulos")
+    motor = proyecto / ".apa" / "scripts" / "generar_docx.py"
+    motor.write_text("# estropeado\n", encoding="utf-8")
+    code, sal = correr(proyecto, INICIAR, "--sincronizar")
+    ok("--sincronizar restaura el motor", code == 0 and "estropeado" not in motor.read_text(encoding="utf-8"), sal[-200:])
+    ok("--sincronizar no toca los capítulos", huella_carpeta(proyecto / "libre" / "capitulos") == caps)
+
+
+def probar_revisar(proyecto):
+    """revisar.py lista candidatos: una cita sin referencia, una referencia sin cita y las marcas."""
+    caps = proyecto / "libre" / "capitulos"
+    capitulo = "\n".join([
+        "# Introducción",
+        "",
+        "Según Kelsen (1960) la norma es el origen. Lo discuten (Pérez & Díaz, 2020; García et al., 2018a).",
+        "El marco es amplio (American Psychological Association [APA], 2020, p. 12). [[pendiente: agregar cifra]]",
+        "",
+        "```",
+        "(Ejemplo, 1999) código ignorado",
+        "```",
+        "<!-- (Oculto, 2001) comentario ignorado -->",
+        ""])
+    referencias = "\n".join([
+        "# Referencias {.sin-numero}",
+        "",
+        "American Psychological Association. (2020). *Manual*. APA.",
+        "Kelsen, H. (1960). Teoría pura del derecho. Eudeba.",
+        "García, M., & Ruiz, P. (2018). Sobre normas. X. [[verificar]]",
+        "Rawls, J. (1971). *A theory of justice*. Harvard University Press.",
+        ""])
+    (caps / "01-primera-seccion.md").write_text(capitulo, encoding="utf-8")
+    (caps / "90-referencias.md").write_text(referencias, encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre")
+    ok("revisar.py termina con código 0", code == 0, sal[-200:])
+    ok("revisar.py detecta la cita sin referencia (Pérez)", "Pérez (2020)" in sal, sal)
+    ok("revisar.py detecta la referencia sin cita (Rawls)", "Rawls (1971)" in sal, sal)
+    ok("revisar.py no marca lo bien citado (Kelsen, García 2018a, APA)",
+       not any(f"{a} (" in sal.split("Referencias que no se citan")[0].split("Citas sin referencia")[1]
+               for a in ("Kelsen", "García", "American")), sal)
+    ok("revisar.py ignora código y comentarios", "Ejemplo" not in sal and "Oculto" not in sal, sal)
+    ok("revisar.py cuenta pendiente y verificar", "Pendientes: 1" in sal and "Por verificar" in sal and ": 1" in sal)
+    code, _ = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre", "--estricto")
+    ok("revisar.py --estricto termina con código 1 si queda algo", code == 1)
+
+
+def probar_migrar(tmp):
+    """Un documento del diseño antiguo se genera igual que antes y sigue protegido contra regeneración."""
+    proyecto = tmp / "antiguo"
+    shutil.copytree(FIXTURES / "diseno-antiguo", proyecto)
+    huellas = proyecto / "docs" / "dist" / ".huellas.json"
+    huellas.parent.mkdir(exist_ok=True)
+    huellas.write_text(json.dumps({"Documento.docx": "abc"}), encoding="utf-8")
+    code, sal = correr(proyecto, INICIAR, "--migrar", "docs")
+    ok("--migrar convierte el diseño antiguo", code == 0, sal[-300:])
+    ok("--migrar avisa de lo obsoleto de la plantilla antigua", "AVISO de la plantilla antigua" in sal and "scripts" in sal, sal)
+    ok("--migrar no borra nada solo", (proyecto / "docs" / "scripts" / "generar_docx.py").exists())
+    ok("--migrar conserva dist/.huellas.json", huellas.exists() and json.loads(huellas.read_text())["Documento.docx"] == "abc")
+    texto = (proyecto / "docs" / "documento.toml").read_text(encoding="utf-8")
+    for clave in ("numerar_titulos = true", "salto_nivel1 = true", 'idioma = "es-BO"', 'salida = "Documento"'):
+        ok(f"--migrar escribe explícito: {clave}", clave in texto)
+    (proyecto / "docs" / "dist" / ".huellas.json").unlink()
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py")
+    docx = proyecto / "docs" / "dist" / "Documento.docx"
+    ok("migrado: genera sin indicar --doc", code == 0 and docx.exists(), sal[-300:])
+    if docx.exists():
+        t1 = titulos_nivel1(docx)
+        ok("migrado: conserva «Capítulo N.» y salto de página", t1 and t1[0][0].startswith("Capítulo 1.") and t1[0][1], str(t1))
+        from docx import Document
+        ok("migrado: conserva el idioma es-BO", Document(docx).core_properties.language == "es-BO")
+        d = Document(docx)
+        d.add_paragraph("editado a mano en Word")
+        d.save(docx)
+        code, sal = correr(proyecto, ".apa/scripts/generar_docx.py")
+        ok("migrado: un .docx editado a mano sigue protegido", code != 0 and "ALTO" in sal, sal[-200:])
+
+
+def main():
+    sys.stdout.reconfigure(encoding="utf-8")
+    with tempfile.TemporaryDirectory(prefix="apa-kit-humo-") as tmp:
+        tmp = Path(tmp)
+        probar_skills()
+        proyecto = probar_tipos(tmp)
+        probar_demas_tipos(tmp)
+        probar_paquete(tmp)
+        probar_importar(tmp, proyecto)
+        probar_sincronizar(proyecto)
+        probar_revisar(proyecto)
+        probar_migrar(tmp)
+    print("\nRESULTADO:", "todo bien" if not fallos else f"{len(fallos)} fallo(s): " + "; ".join(fallos))
+    sys.exit(1 if fallos else 0)
+
+
+if __name__ == "__main__":
+    main()

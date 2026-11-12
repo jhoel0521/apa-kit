@@ -1,0 +1,39 @@
+name: Nuevo tipo de documento
+description: Propón un tipo de documento (por ejemplo, una norma de tu universidad o un género académico)
+labels: ["tipo-de-documento"]
+body:
+  - type: input
+    id: nombre
+    attributes:
+      label: Nombre del tipo
+      placeholder: proyecto-de-grado, reseña, informe-de-laboratorio…
+    validations:
+      required: true
+  - type: textarea
+    id: para
+    attributes:
+      label: Para quién es y por qué no basta con `libre`
+    validations:
+      required: true
+  - type: textarea
+    id: indice
+    attributes:
+      label: Estructura habitual (capítulos o secciones, en orden)
+    validations:
+      required: true
+  - type: textarea
+    id: formato
+    attributes:
+      label: Formato que cambia
+      description: ¿Se numeran los títulos? ¿Cada capítulo en página nueva? ¿Portada o encabezado especial? ¿Datos de portada?
+  - type: textarea
+    id: fuente
+    attributes:
+      label: Fuente de la norma
+      description: Enlace o documento oficial donde se pide esta estructura. No pegues datos personales.
+  - type: checkboxes
+    id: contribuir
+    attributes:
+      label: Contribuir
+      options:
+        - label: Puedo enviar el tipo yo mismo (ver CONTRIBUTING.md)

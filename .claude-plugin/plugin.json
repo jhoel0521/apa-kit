@@ -1,0 +1,14 @@
+{
+  "name": "apa-kit",
+  "displayName": "apa-kit — documentos APA 7",
+  "version": "0.2.0",
+  "description": "Skills para que un agente cree y versione documentos académicos en formato APA 7 (tesis, trabajos, artículos, informes) de cualquier carrera, con capítulos en Markdown y salida en Word.",
+  "author": {
+    "name": "jhoel0521",
+    "url": "https://github.com/jhoel0521"
+  },
+  "homepage": "https://github.com/jhoel0521/apa-kit",
+  "repository": "https://github.com/jhoel0521/apa-kit",
+  "license": "MIT",
+  "keywords": ["apa", "apa7", "tesis", "documentos", "markdown", "docx", "academico"]
+}

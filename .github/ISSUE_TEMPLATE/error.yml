@@ -1,0 +1,42 @@
+name: Error
+description: Algo no funciona como debería
+labels: ["bug"]
+body:
+  - type: textarea
+    id: que
+    attributes:
+      label: Qué pasó
+      description: Qué esperabas y qué ocurrió. Si hay un mensaje de error, pégalo completo.
+    validations:
+      required: true
+  - type: dropdown
+    id: skill
+    attributes:
+      label: Skill o script
+      options: [apa-init, apa-importar, apa-escribir, apa-revisar, apa-generar, apa-guia, iniciar.py, generar_docx.py, importar_docx.py, revisar.py, verificar_entorno.py, paquete Cowork, otro]
+    validations:
+      required: true
+  - type: input
+    id: tipo
+    attributes:
+      label: Tipo de documento
+      placeholder: tesis, articulo, informe, libre…
+  - type: input
+    id: entorno
+    attributes:
+      label: Sistema, Python y agente
+      placeholder: Windows 11, Python 3.13, Claude Code
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión de apa-kit
+      description: Está en el archivo .apa/VERSION de tu proyecto.
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Cómo repetirlo
+  - type: markdown
+    attributes:
+      value: "**No pegues datos personales** (nombre, carnet, tutor…) ni el contenido de tu tesis."

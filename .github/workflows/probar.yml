@@ -1,16 +1,17 @@
 name: probar
 
-# Comprueba que la plantilla funciona en Windows, macOS y Linux, con el Python mínimo (3.9) y el actual.
+# Comprueba apa-kit en Windows, macOS y Linux, con el Python mínimo (3.9) y el actual.
 on:
   push:
     branches: [main]
   pull_request:
   workflow_dispatch:
 
+env:
+  REQUISITOS: skills/apa-init/assets/scripts/requirements.txt
+
 jobs:
   probar:
-    # Solo en el repositorio oficial; en los proyectos que usen la plantilla no se ejecuta.
-    if: github.repository == 'jhoel0521/plantilla-docs-apa'
     strategy:
       fail-fast: false
       matrix:
@@ -27,23 +28,32 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
-      - name: Verificar entorno e instalar librerías
-        run: python scripts/verificar_entorno.py --instalar
-      - name: Prueba de humo (importar un Word y generar el documento)
-        run: python scripts/prueba_humo.py
+      - name: Instalar librerías
+        run: python -m pip install -r ${{ env.REQUISITOS }}
+      - name: Prueba de humo (crear cada tipo, importar un Word, generar, sincronizar y migrar)
+        run: python tests/prueba_humo.py
 
-  # El Python del sistema de Debian/Ubuntu rechaza "pip install" (PEP 668): debe usar .venv solo.
+  # El Python del sistema de Debian/Ubuntu rechaza "pip install" (PEP 668): debe usar .apa/.venv solo.
   linux-python-del-sistema:
-    if: github.repository == 'jhoel0521/plantilla-docs-apa'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y python3 python3-venv python3-pip
-      - name: Instalar con el Python del sistema, forzando el camino .venv (como en PEP 668)
-        run: python3 scripts/verificar_entorno.py --instalar
+      - name: Crear un proyecto con DOS documentos usando el Python del sistema
+        # Con dos documentos, --doc debe sobrevivir al relanzamiento dentro de .apa/.venv.
+        run: |
+          mkdir "$RUNNER_TEMP/proyecto"
+          cd "$RUNNER_TEMP/proyecto"
+          python3 -B "$GITHUB_WORKSPACE/skills/apa-init/assets/scripts/iniciar.py" --tipo tesis --destino tesis
+          python3 -B "$GITHUB_WORKSPACE/skills/apa-init/assets/scripts/iniciar.py" --tipo articulo --destino articulo
+      - name: Instalar forzando el camino .venv (como en PEP 668)
+        working-directory: ${{ runner.temp }}/proyecto
+        run: python3 .apa/scripts/verificar_entorno.py --instalar --doc tesis
         env:
-          PLANTILLA_FORZAR_VENV: "1"
-      - name: Prueba de humo dentro de .venv
-        run: python3 scripts/prueba_humo.py
-      - name: Confirmar que se creó .venv
-        run: test -d .venv
+          APA_FORZAR_VENV: "1"
+      - name: Generar dentro de .apa/.venv
+        working-directory: ${{ runner.temp }}/proyecto
+        run: python3 .apa/scripts/generar_docx.py --doc tesis
+      - name: Confirmar que se creó .apa/.venv y el .docx
+        working-directory: ${{ runner.temp }}/proyecto
+        run: test -d .apa/.venv && test -f tesis/dist/Tesis.docx

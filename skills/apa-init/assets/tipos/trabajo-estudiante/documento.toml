@@ -1,0 +1,41 @@
+# Configuración del documento. NO pongas aquí datos personales: usa {{CLAVE}} y el archivo .env.
+
+[kit]
+tipo = "trabajo-estudiante"
+descripcion = "Ensayo, monografía o trabajo de curso con portada de estudiante APA 7 (curso, docente, fecha). Sin índice, sin numerar."
+version_kit = "0"
+
+[documento]
+titulo = "[[Título del trabajo]]"
+subtitulo = ""
+salida = "Trabajo"                       # dist/Trabajo.docx
+papel = "carta"                          # carta | a4 | oficio
+fuente = "Times New Roman"               # APA 7 admite también Calibri 11 o Arial 11
+tamano = 12
+idioma = "es"
+justificar = false
+numerar_titulos = false                  # APA 7 no numera los títulos
+salto_nivel1 = false                     # el texto corre seguido; Referencias y Anexos sí empiezan página
+etiqueta_seccion = "Sección"
+niveles_indice = 3
+etiqueta_tabla = "Tabla"
+etiqueta_figura = "Figura"
+logo = "recursos/logos/logo.png"
+logo_ancho_cm = 4
+
+[portada]
+# Portada de estudiante APA 7: título en negrita, y debajo autor, facultad y universidad, curso, docente y fecha.
+espacios_arriba = 3
+lineas = [
+  "{{AUTOR}}",
+  "{{FACULTAD}}, {{UNIVERSIDAD}}",
+  "{{CURSO}}",
+  "{{DOCENTE}}",
+  "{{FECHA}}",
+]
+
+[preliminares]
+# APA 7: el título se repite al comenzar el texto. Los trabajos cortos no llevan índice.
+orden = ["portada", "previos", "titulo_cuerpo"]
+
+[variables]

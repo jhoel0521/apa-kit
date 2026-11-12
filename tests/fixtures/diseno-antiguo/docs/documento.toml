@@ -1,0 +1,12 @@
+# Documento del diseño antiguo (plantilla v0.1.0) sin las claves que luego cambiaron de valor por defecto.
+[documento]
+titulo = "Documento de prueba"
+subtitulo = "Migración"
+papel = "carta"
+niveles_indice = 3
+
+[portada]
+lineas = ["Autor de prueba", "Institución de prueba"]
+
+[preliminares]
+orden = ["portada", "indice"]

@@ -1,0 +1,42 @@
+# Configuración del documento. NO pongas aquí datos personales: usa {{CLAVE}} y el archivo .env.
+
+[kit]
+tipo = "articulo"
+descripcion = "Artículo académico o trabajo profesional APA 7: encabezado con título corto, nota del autor, resumen y secciones Método, Resultados y Discusión."
+version_kit = "0"
+
+[documento]
+titulo = "[[Título del artículo]]"
+subtitulo = ""
+encabezado = "[[TÍTULO CORTO EN MAYÚSCULAS, MÁXIMO 50 CARACTERES]]"   # va en todas las páginas, con el número a la derecha
+salida = "Articulo"                      # dist/Articulo.docx
+papel = "carta"                          # carta | a4 | oficio
+fuente = "Times New Roman"               # APA 7 admite también Calibri 11 o Arial 11
+tamano = 12
+idioma = "es"
+justificar = false
+numerar_titulos = false                  # APA 7 no numera los títulos
+salto_nivel1 = false                     # las secciones corren seguidas; Referencias y Anexos sí empiezan página
+etiqueta_seccion = "Sección"
+niveles_indice = 3
+etiqueta_tabla = "Tabla"
+etiqueta_figura = "Figura"
+
+[portada]
+# Portada profesional APA 7: título en negrita; debajo autores y afiliaciones; al pie, la nota del autor.
+espacios_arriba = 3
+lineas = [
+  "{{AUTOR}}",
+  "{{AFILIACION}}",
+]
+nota_autor = [
+  "{{AUTOR}} https://orcid.org/{{ORCID}}",
+  "[[Agradecimientos, financiación y conflictos de interés, si los hay.]]",
+  "La correspondencia sobre este artículo debe dirigirse a {{AUTOR}}, {{CORREO}}.",
+]
+
+[preliminares]
+# Un artículo no lleva índice. El título se repite en negrita al comenzar el texto (página 3).
+orden = ["portada", "previos", "titulo_cuerpo"]
+
+[variables]
