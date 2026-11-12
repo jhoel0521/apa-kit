@@ -39,6 +39,19 @@ def main():
     ok("tiene theme-color", meta(html, "name", "theme-color") is not None)
     ok("<html> declara el idioma", '<html lang="es">' in html)
 
+    # Correcciones de la auditoría UX
+    botones = re.findall(r"<button[^>]*data-copy[^>]*>[^<]*</button>", html)
+    nombres = [(re.search(r'aria-label="([^"]*)"', b) or re.search(r">([^<]*)<", b)).group(1) for b in botones]
+    ok("los botones de copiar tienen nombre accesible distinto", len(botones) >= 3 and len(set(nombres)) == len(nombres), str(nombres))
+    ok("el aviso del móvil va antes de los botones principales", 0 <= html.find('id="movil"') < html.find('class="btns"'))
+    ok("la descarga principal es un botón (.btn)", bool(re.search(r'<a class="btn" href="[^"]*apa-kit-cowork\.zip"', html)))
+    ok("los controles tienen altura mínima de 44 px (nav, logo, resúmenes)",
+       "min-height: 44px" in html and re.search(r"nav a \{[^}]*min-height: 44px", html) and re.search(r"summary \{[^}]*padding: 12px 0", html))
+    ok("los botones heredan la fuente de la página", "button { font: inherit; }" in html)
+    tamanos = set(re.findall(r"font-size: (var\(--fs-[a-z]+\)|\d+px|[\d.]+em|clamp\([^)]*\))", html))
+    ok("la tipografía usa la escala de 4 tamaños (sin px sueltos)", all(t.startswith("var(--fs-") or t.startswith("clamp") for t in tamanos), str(sorted(tamanos)))
+    ok("detecta el iPad (iPadOS se presenta como Mac)", "maxTouchPoints" in html)
+
     ld = re.search(r'ld\+json">\s*(\{.*?\})\s*</script>', html, re.S)
     try:
         datos = json.loads(ld.group(1)) if ld else {}

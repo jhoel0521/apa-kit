@@ -32,91 +32,87 @@
 :root {
   --bg: #fbfaf7; --surface: #ffffff; --text: #1d2430; --muted: #5a6475; --line: #dcd8cf;
   --accent: #1f4e79; --accent-text: #ffffff; --soft: #eaf1f8; --warn-bg: #fff4d6; --warn-line: #e0b34a;
-  --code-bg: #f1efe9; --ok: #1d6b3a;
+  --code-bg: #f1efe9; --ok: #1d6b3a; --logo-borde: transparent;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #14171c; --surface: #1c2027; --text: #e8eaee; --muted: #a2abba; --line: #323844;
     --accent: #7db3e6; --accent-text: #0e1b29; --soft: #1b2733; --warn-bg: #3a3017; --warn-line: #8a6d1d;
-    --code-bg: #12151a; --ok: #6bcf8e;
+    --code-bg: #12151a; --ok: #6bcf8e; --logo-borde: rgba(255, 255, 255, .28);
   }
 }
 :root[data-theme="dark"] {
   --bg: #14171c; --surface: #1c2027; --text: #e8eaee; --muted: #a2abba; --line: #323844;
   --accent: #7db3e6; --accent-text: #0e1b29; --soft: #1b2733; --warn-bg: #3a3017; --warn-line: #8a6d1d;
-  --code-bg: #12151a; --ok: #6bcf8e;
+  --code-bg: #12151a; --ok: #6bcf8e; --logo-borde: rgba(255, 255, 255, .28);
 }
+:root { --fs-s: 15px; --fs-m: 17px; --fs-l: 24px; --fs-xl: clamp(28px, 5vw, 40px); }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
   margin: 0; background: var(--bg); color: var(--text); line-height: 1.6;
-  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font: var(--fs-m)/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 .wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
 header.top { border-bottom: 1px solid var(--line); background: var(--surface); }
 header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
-.brand { font-weight: 700; color: var(--text); text-decoration: none; }
-nav a { color: var(--muted); text-decoration: none; margin-left: 16px; font-size: 15px; }
+.brand { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; font-weight: 700; color: var(--text); text-decoration: none; }
+.brand img { border-radius: 8px; box-shadow: 0 0 0 1px var(--logo-borde); }
+nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; margin-left: 8px; color: var(--muted); text-decoration: none; font-size: var(--fs-s); }
 nav a:hover, nav a:focus-visible { color: var(--accent); text-decoration: underline; }
 .hero { padding: 48px 0 32px; }
-h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
-.lead { font-size: 19px; color: var(--muted); max-width: 640px; margin: 0 0 24px; }
+h1 { font-size: var(--fs-xl); line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
+.lead { font-size: var(--fs-m); color: var(--muted); max-width: 640px; margin: 0 0 24px; }
 .btns { display: flex; gap: 12px; flex-wrap: wrap; }
+button { font: inherit; }
 .btn {
-  display: inline-block; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--accent);
-  background: var(--accent); color: var(--accent-text); font-weight: 600; text-decoration: none; cursor: pointer; font-size: 16px;
+  display: inline-flex; align-items: center; min-height: 44px; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--accent-text); font-weight: 600; text-decoration: none; cursor: pointer; font-size: var(--fs-m);
 }
 .btn.sec { background: transparent; color: var(--accent); }
 .btn:hover { filter: brightness(1.08); }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
-.chip { font-size: 14px; padding: 4px 12px; border-radius: 999px; background: var(--soft); color: var(--accent); }
+.chip { font-size: var(--fs-s); padding: 4px 12px; border-radius: 999px; background: var(--soft); color: var(--accent); }
 section { padding: 32px 0; border-top: 1px solid var(--line); }
-h2 { font-size: 26px; margin: 0 0 16px; }
-h3 { font-size: 19px; margin: 0 0 6px; }
+h2 { font-size: var(--fs-l); margin: 0 0 16px; }
+h3 { font-size: var(--fs-m); margin: 0 0 6px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
 .card p { margin: 0 0 8px; color: var(--muted); }
-.card a { color: var(--accent); font-weight: 600; }
-ol.steps { padding-left: 0; list-style: none; counter-reset: s; display: grid; gap: 14px; margin: 0; }
+.card a:not(.btn) { color: var(--accent); font-weight: 600; }
+ol.steps { padding-left: 0; list-style: none; counter-reset: s; display: grid; gap: 16px; margin: 0; }
 ol.steps li { counter-increment: s; position: relative; padding-left: 52px; }
 ol.steps li::before {
   content: counter(s); position: absolute; left: 0; top: 0; width: 36px; height: 36px; border-radius: 50%;
   background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-weight: 700;
 }
 ol.steps strong { display: block; }
-.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-.tab {
-  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
-  color: var(--text); cursor: pointer; font-size: 15px;
-}
-.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
-.panel[hidden] { display: none; }
 pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
 pre {
-  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin: 8px 0 12px;
-  overflow-x: auto; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 16px; margin: 8px 0 12px;
+  overflow-x: auto; font-size: var(--fs-s); line-height: 1.5; white-space: pre-wrap; word-break: break-word;
 }
-code { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; }
+code { background: var(--code-bg); padding: 0 4px; border-radius: 4px; font-size: inherit; }
 pre code { background: none; padding: 0; }
 .prompt { max-height: 320px; overflow: auto; }
 .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.status { color: var(--ok); font-weight: 600; font-size: 15px; }
+.status { color: var(--ok); font-weight: 600; font-size: var(--fs-s); }
 .notice { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 8px; padding: 12px 16px; margin: 0 0 16px; }
-.note { color: var(--muted); font-size: 15px; }
-details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
-summary { cursor: pointer; font-weight: 600; }
-details p { margin: 10px 0 0; color: var(--muted); }
-footer { border-top: 1px solid var(--line); padding: 24px 0 48px; color: var(--muted); font-size: 15px; }
+.note { color: var(--muted); font-size: var(--fs-s); }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 0 16px; margin-bottom: 12px; }
+summary { cursor: pointer; font-weight: 600; padding: 12px 0; }
+details p { margin: 0 0 16px; color: var(--muted); }
+footer { border-top: 1px solid var(--line); padding: 24px 0 48px; color: var(--muted); font-size: var(--fs-s); }
 footer a { color: var(--accent); }
-@media (max-width: 520px) { nav a { margin-left: 10px; } .hero { padding-top: 32px; } }
+@media (max-width: 520px) { nav a { margin-left: 0; } .hero { padding-top: 32px; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 </style>
 </head>
 <body>
 <header class="top">
   <div class="wrap">
-    <a class="brand" href="#" style="display:inline-flex;align-items:center;gap:8px"><img src="img/logo-256.png" width="28" height="28" alt="">apa-kit</a>
+    <a class="brand" href="#"><img src="img/logo-72.png" width="36" height="36" alt="">apa-kit</a>
     <nav aria-label="Secciones">
       <a href="#como">Cómo funciona</a>
       <a href="#instalar">Instalar</a>
@@ -133,21 +129,20 @@ footer a { color: var(--accent); }
       o informe, de cualquier carrera. Los capítulos viven en archivos de texto, un script los convierte en un
       <strong>Word</strong> con márgenes, sangrías, títulos, tablas, figuras, índice y referencias, y git guarda cada versión.
       No hay que descargar una plantilla ni saber programar.</p>
+    <div id="movil" class="notice" hidden>
+    <strong>Estás en un celular o una tableta.</strong> apa-kit necesita una computadora con Windows, macOS o Linux
+    (iPhone y iPad no permiten instalar Python). Puedes leer esta página aquí y abrirla después en tu computadora.
+    </div>
     <div class="btns">
       <a class="btn" href="#instalar">Instalar apa-kit</a>
       <a class="btn sec" href="https://github.com/jhoel0521/apa-kit" rel="noopener">Ver en GitHub</a>
     </div>
-    <div class="chips" aria-label="Características">
+    <div class="chips">
       <span class="chip">Gratis y de código abierto (MIT)</span>
       <span class="chip">Cualquier carrera</span>
       <span class="chip">Windows · macOS · Linux</span>
       <span class="chip">Tus datos no se suben</span>
     </div>
-  </div>
-
-  <div id="movil" class="notice" hidden>
-    <strong>Estás en un celular o una tableta.</strong> apa-kit necesita una computadora con Windows, macOS o Linux
-    (iPhone y iPad no permiten instalar Python). Puedes leer esta página aquí y abrirla después en tu computadora.
   </div>
 
   <section id="como">
@@ -167,17 +162,17 @@ footer a { color: var(--accent); }
       <div class="card">
         <h3>Cowork o claude.ai</h3>
         <p>Sin programar. Descarga el paquete único y súbelo en la configuración de skills de tu aplicación.</p>
-        <p><a href="https://github.com/jhoel0521/apa-kit/releases/latest/download/apa-kit-cowork.zip" rel="noopener">Descargar apa-kit-cowork.zip</a></p>
+        <p><a class="btn" href="https://github.com/jhoel0521/apa-kit/releases/latest/download/apa-kit-cowork.zip" rel="noopener">Descargar apa-kit-cowork.zip</a></p>
       </div>
       <div class="card">
         <h3>Claude Code (plugin)</h3>
         <pre><code id="cmd-plugin">/plugin install apa-kit --marketplace jhoel0521/apa-kit</code></pre>
-        <div class="row"><button class="btn sec" data-copy="cmd-plugin">Copiar</button><span class="status" role="status" aria-live="polite"></span></div>
+        <div class="row"><button class="btn sec" data-copy="cmd-plugin" aria-label="Copiar comando del plugin">Copiar</button><span class="status" role="status" aria-live="polite"></span></div>
       </div>
       <div class="card">
         <h3>Claude Code, Codex, Cursor, Gemini…</h3>
         <pre><code id="cmd-npx">npx skills add jhoel0521/apa-kit</code></pre>
-        <div class="row"><button class="btn sec" data-copy="cmd-npx">Copiar</button><span class="status" role="status" aria-live="polite"></span></div>
+        <div class="row"><button class="btn sec" data-copy="cmd-npx" aria-label="Copiar comando npx">Copiar</button><span class="status" role="status" aria-live="polite"></span></div>
       </div>
     </div>
     <p class="note">Necesitas <strong>Python 3.9 o superior</strong> en el equipo donde tu asistente ejecuta comandos; la primera vez,
@@ -187,7 +182,7 @@ footer a { color: var(--accent); }
 skills/apa-init/SKILL.md, y sigue apa-init paso a paso usando esa carpeta como ASSETS
 (skills/apa-init/assets). No escribas dentro de la carpeta clonada; todo se crea en mi carpeta de trabajo.
 Pregúntame antes de instalar algo y no inventes datos ni referencias.</code></pre>
-    <div class="row"><button class="btn" data-copy="txt-sin-skills">Copiar texto</button><span class="status" role="status" aria-live="polite"></span></div>
+    <div class="row"><button class="btn sec" data-copy="txt-sin-skills">Copiar texto</button><span class="status" role="status" aria-live="polite"></span></div>
     <p class="note">Guía paso a paso para quien no programa:
       <a href="https://github.com/jhoel0521/apa-kit/blob/main/docs/guia-estudiantes.md" rel="noopener">guía para estudiantes</a>.</p>
   </section>
@@ -226,7 +221,8 @@ Pregúntame antes de instalar algo y no inventes datos ni referencias.</code></p
 <script>
 (function () {
   var plat = (navigator.platform || "") + " " + (navigator.userAgent || "");
-  if (/iPhone|iPad|iPod|Android/i.test(plat)) document.getElementById("movil").hidden = false;
+  var ipadComoMac = navigator.maxTouchPoints > 1 && /Mac/.test(navigator.platform);   // iPadOS se presenta como Mac
+  if (/iPhone|iPad|iPod|Android/i.test(plat) || ipadComoMac) document.getElementById("movil").hidden = false;
 
   function copiar(texto) {
     if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(texto);
@@ -241,7 +237,7 @@ Pregúntame antes de instalar algo y no inventes datos ni referencias.</code></p
     b.addEventListener("click", function () {
       var estado = b.parentNode.querySelector(".status");
       var texto = document.getElementById(b.getAttribute("data-copy")).textContent;
-      copiar(texto).then(function () { estado.textContent = "Copiado"; }, function () { estado.textContent = "Selecciona el texto y cópialo a mano"; });
+      copiar(texto).then(function () { estado.textContent = "Copiado. Pégalo en tu asistente."; }, function () { estado.textContent = "Selecciona el texto y cópialo a mano"; });
       setTimeout(function () { estado.textContent = ""; }, 3000);
     });
   });
