@@ -447,6 +447,7 @@ def main():
                        {"Tabla": dcfg.get("etiqueta_tabla", "Tabla"), "Figura": dcfg.get("etiqueta_figura", "Figura")},
                        salto_nivel1=bool(dcfg.get("salto_nivel1", False)),
                        encabezado=sub(dcfg["encabezado"]) if dcfg.get("encabezado") else None)
+    doc.tabla_junta = bool(dcfg.get("tablas_juntas", True))
     portada_cfg = {**dcfg, "portada": cfg.get("portada", {})}
     for parte in cfg.get("preliminares", {}).get("orden", ["portada", "previos", "indice",
                                                             "lista_tablas", "lista_figuras"]):

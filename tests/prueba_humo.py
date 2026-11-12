@@ -203,6 +203,35 @@ def probar_demas_tipos(tmp):
        all(t in sal for t in ("tesis", "tesis-software", "libre", "informe", "articulo", "trabajo-estudiante")), sal)
 
 
+def probar_tablas_juntas(tmp):
+    """Las tablas no parten filas y van atadas a su nota (se comprueba en el XML; la paginación real depende de Word)."""
+    from docx import Document
+    from docx.oxml.ns import qn
+    proyecto = tmp / "tablas"
+    proyecto.mkdir()
+    correr(proyecto, INICIAR, "--tipo", "libre", "--destino", "doc")
+    (proyecto / "doc" / "capitulos" / "01-primera-seccion.md").write_text("\n".join([
+        "# Tablas", "", "Tabla: Una tabla {#t1}", "", "| A | B |", "|---|---|", "| 1 | uno<br>dos |", "| 2 | tres |", "",
+        "Nota: la nota.", ""]), encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "doc")
+    docx = proyecto / "doc" / "dist" / "Documento.docx"
+    if not ok("genera un documento con una tabla", code == 0 and docx.exists(), sal[-300:]):
+        return
+    t = Document(docx).tables[0]
+    ok("tablas: ninguna fila se parte (cantSplit)",
+       all(f._tr.trPr is not None and f._tr.trPr.find(qn("w:cantSplit")) is not None for f in t.rows))
+    ok("tablas: todas las filas van con la siguiente, la última con la nota",
+       all(p.paragraph_format.keep_with_next for f in t.rows for c in f.cells for p in c.paragraphs))
+    ok("tablas: la celda admite salto de línea con <br>", len(t.rows[1].cells[1].paragraphs) == 2)
+    # con tablas_juntas = false las filas fluyen libres
+    toml = proyecto / "doc" / "documento.toml"
+    toml.write_text(toml.read_text(encoding="utf-8").replace("[documento]", "[documento]\ntablas_juntas = false", 1), encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "doc", "--forzar")
+    t = Document(docx).tables[0]
+    ok("tablas_juntas = false deja las filas libres", code == 0 and not any(
+        p.paragraph_format.keep_with_next for f in t.rows for c in f.cells for p in c.paragraphs), sal[-200:])
+
+
 def probar_paquete(tmp):
     """El paquete único para Cowork funciona extraído en una carpeta cualquiera, sin el resto del repositorio."""
     import zipfile
@@ -333,6 +362,7 @@ def main():
         probar_skills()
         proyecto = probar_tipos(tmp)
         probar_demas_tipos(tmp)
+        probar_tablas_juntas(tmp)
         probar_paquete(tmp)
         probar_importar(tmp, proyecto)
         probar_sincronizar(proyecto)
