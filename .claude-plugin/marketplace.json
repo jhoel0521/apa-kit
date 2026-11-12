@@ -1,0 +1,14 @@
+{
+  "name": "apa-kit",
+  "description": "Skills para escribir documentos académicos en formato APA 7 con cualquier agente",
+  "owner": {
+    "name": "jhoel0521"
+  },
+  "plugins": [
+    {
+      "name": "apa-kit",
+      "source": "./",
+      "description": "Crea, importa, escribe, revisa y genera documentos APA 7 (tesis, trabajo, artículo, informe) de cualquier carrera"
+    }
+  ]
+}

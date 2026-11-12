@@ -162,6 +162,31 @@ def probar_demas_tipos(tmp):
        all(t in sal for t in ("tesis", "tesis-software", "libre", "informe", "articulo", "trabajo-estudiante")), sal)
 
 
+def probar_paquete(tmp):
+    """El paquete único para Cowork funciona extraído en una carpeta cualquiera, sin el resto del repositorio."""
+    import zipfile
+    salida = tmp / "paquetes"
+    code, sal = correr(REPO, REPO / "herramientas" / "empaquetar.py", "--salida", salida)
+    ok("empaquetar.py crea los paquetes", code == 0 and (salida / "apa-kit-cowork.zip").exists(), sal[-300:])
+    for nombre in ("apa-kit-plugin.zip", "apa-init.zip", "apa-guia.zip"):
+        ok(f"existe {nombre}", (salida / nombre).exists())
+    if not (salida / "apa-kit-cowork.zip").exists():
+        return
+    extraido = tmp / "cowork"
+    zipfile.ZipFile(salida / "apa-kit-cowork.zip").extractall(extraido)
+    skill = extraido / "apa-kit"
+    ok("el paquete único trae SKILL.md, flujos y referencias",
+       all((skill / x).exists() for x in ("SKILL.md", "flujos/apa-init.md", "flujos/apa-revisar.md", "references/sintaxis.md")))
+    antes = listado(skill)
+    proyecto = tmp / "proyecto-cowork"
+    proyecto.mkdir()
+    code, sal = correr(proyecto, skill / "assets" / "scripts" / "iniciar.py", "--tipo", "articulo", "--destino", "mi-articulo")
+    ok("el paquete único crea un documento", code == 0, sal[-300:])
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py")
+    ok("el paquete único genera el Word", code == 0 and (proyecto / "mi-articulo" / "dist" / "Articulo.docx").exists(), sal[-300:])
+    ok("el paquete único no se modifica al usarlo", listado(skill) == antes)
+
+
 def probar_importar(tmp, proyecto):
     from PIL import Image
     Image.new("RGB", (200, 100), "#4477aa").save(tmp / "figura.png")
@@ -263,6 +288,7 @@ def main():
         tmp = Path(tmp)
         proyecto = probar_tipos(tmp)
         probar_demas_tipos(tmp)
+        probar_paquete(tmp)
         probar_importar(tmp, proyecto)
         probar_sincronizar(proyecto)
         probar_revisar(proyecto)

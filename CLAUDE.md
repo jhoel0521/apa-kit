@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-Lee y cumple primero **@AGENTS.md** (reglas comunes) y **@README.md** (manual y sintaxis).
+Lee y cumple primero **@AGENTS.md** (reglas del kit) y **@CONTRIBUTING.md** (cómo contribuir).
 
 ## Reglas para Claude
 - Responde en español.
-- Antes de generar el documento, ejecuta `python docs/scripts/verificar_entorno.py` (`python3` en Mac/Linux).
-- Para revisar el avance usa `python docs/scripts/generar_docx.py --estado`, no abras el `.docx`.
-- Si el autor comparte el documento editado, pídele una conversión a `.md` para leerlo; no edites
-  el `.docx`.
+- Este repositorio es el **kit**, no un documento. Para escribir una tesis con apa-kit se usan las skills
+  (`apa-init`, `apa-escribir`…) en la carpeta del usuario, no se edita aquí.
+- Antes de dar un cambio por terminado: `python tests/prueba_humo.py` (en Windows también sirve `py -3`).
+- Para validar el plugin: `claude plugin validate .`
 - No agregues `Co-Authored-By` en los commits salvo que el autor lo pida.
-- Para integrar este template en otro proyecto sigue `PROMPT_INICIAL.md` paso a paso.
+- No hagas commit, push, etiquetas ni Releases sin pedido explícito del autor.
