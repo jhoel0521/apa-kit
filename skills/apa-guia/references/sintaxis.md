@@ -41,4 +41,16 @@ Ejemplo completo de todos los elementos: `ejemplo-sintaxis.md` (en esta misma ca
 | `etiqueta_seccion` | Palabra de las referencias `@sec:` («Capítulo», «Sección») |
 | `etiqueta_tabla` / `etiqueta_figura` | «Tabla»/«Figura», o «Cuadro»/«Gráfico» si la facultad lo pide |
 | `fuente`, `tamano`, `papel`, `justificar` | Tipografía y página (APA 7 admite Times New Roman 12, Calibri 11, Arial 11…) |
+| `tablas_juntas` | `true` (por defecto): las filas no se parten y cada tabla va atada a su título y a su nota. Si cabe en una página, Word la mueve entera a la siguiente; si es más alta que una página, la parte y repite el encabezado. `false`: las filas fluyen libres |
 | `[preliminares].orden` | Orden de portada, previos, índice y listas |
+
+## Saltos de página y maquetación
+- **No pongas saltos a mano para acomodar tablas o figuras.** Word decide las páginas al abrir el archivo; un `\newpage`
+  que hoy queda bien deja una hoja casi vacía cuando el texto cambia. El generador ya ata cada título a su tabla o
+  figura, y la tabla a su nota.
+- `\newpage` queda para casos puntuales (por ejemplo, empezar un anexo). Para que cada capítulo empiece página
+  usa `salto_nivel1 = true`.
+- Salto de línea **dentro de una celda** de tabla: `<br>` (por ejemplo `| línea uno<br>línea dos | dato |`).
+- Las figuras salen centradas; su tamaño se ajusta con `ancho=14` (en cm). El logo va en `recursos/logos/logo.png`,
+  con `logo` y `logo_ancho_cm` en `documento.toml`.
+- Dejar bloques juntos puede dejar espacio en blanco al pie de la página anterior. Es lo esperado.

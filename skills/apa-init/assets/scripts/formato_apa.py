@@ -29,6 +29,8 @@ class DocumentoAPA:
         self.justificar = justificar
         # True: cada título de nivel 1 empieza página (tesis). APA 7 no lo exige (artículos, informes).
         self.salto_nivel1 = salto_nivel1
+        # True (por defecto): cada tabla se mantiene unida y atada a su título y su nota. Ver tabla().
+        self.tabla_junta = True
         ancho, alto = PAPELES[papel]
         self.ancho_texto = ancho - 2 * MARGEN
         self.contadores = {"Tabla": 0, "Figura": 0}
@@ -332,6 +334,16 @@ class DocumentoAPA:
         for fila in t.rows:
             for c, w in zip(fila.cells, anchos):
                 c.width = Cm(w)
+            # Maquetación: ninguna fila se parte entre páginas, y cada fila va "con la siguiente" (la última, con la
+            # nota). Word decide solo: si la tabla cabe en una página, la mueve ENTERA a la siguiente; si es más alta
+            # que una página, la parte donde toque y repite el encabezado. No hace falta ningún salto manual.
+            if self.tabla_junta:
+                cs = OxmlElement("w:cantSplit")
+                cs.set(qn("w:val"), "true")
+                fila._tr.get_or_add_trPr().append(cs)
+                for c in fila.cells:
+                    for p in c.paragraphs:
+                        p.paragraph_format.keep_with_next = True
         return t
 
     def imagen(self, ruta, ancho_cm):
