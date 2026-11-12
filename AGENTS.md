@@ -28,6 +28,8 @@ Estructura y razones: `README.md` y `CONTRIBUTING.md`.
 - **Compatibilidad hacia atrás del documento:** si cambias un valor por defecto de `documento.toml`, `iniciar.py
   --migrar` debe escribir el valor antiguo explícito y la prueba de humo debe comprobarlo.
 - **Protección del Word editado a mano:** no la debilites (`generar_docx.py`, huellas en `dist/.huellas.json`).
+- **Sitio web:** vive en `sitio/` de `main` y se publica con `.github/workflows/sitio.yml`. No uses ni recrees la rama `gh-pages`.
+  Todo cambio en `sitio/` pasa `python3 tests/probar_sitio.py`. Si cambias `sitio/img/og.jpg`, sube el `?v=` de `og:image`.
 - **Privacidad:** ningún dato personal en archivos versionados; los ejemplos usan `{{CLAVE}}`.
 - **Referencias y datos:** no inventes referencias, DOI ni URL en ejemplos o documentación.
 - **Python 3.9:** nada de `match`, ni `X | Y` en tipos, ni `tomllib` sin el respaldo `tomli`.

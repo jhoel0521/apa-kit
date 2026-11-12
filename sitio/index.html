@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>apa-kit: tesis y trabajos en formato APA 7 con IA</title>
+<meta name="description" content="Skills para que tu asistente de IA escriba y versione tu tesis o trabajo en formato APA 7 (Markdown a Word), de cualquier carrera. Gratis y abierto.">
+<meta name="theme-color" content="#1f4e79">
+<link rel="canonical" href="https://jhoel0521.github.io/apa-kit/">
+<link rel="icon" type="image/png" href="img/favicon-192.png">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="apa-kit">
+<meta property="og:locale" content="es_ES">
+<meta property="og:title" content="apa-kit: tesis y trabajos en formato APA 7 con IA">
+<meta property="og:description" content="Skills para que tu asistente de IA escriba y versione tu tesis o trabajo en formato APA 7 (Markdown a Word), de cualquier carrera. Gratis y abierto.">
+<meta property="og:url" content="https://jhoel0521.github.io/apa-kit/">
+<meta property="og:image" content="https://jhoel0521.github.io/apa-kit/img/og.jpg?v=2">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="apa-kit: tu tesis en formato APA 7 con tu asistente de IA">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="apa-kit: tesis y trabajos en formato APA 7 con IA">
+<meta name="twitter:description" content="Skills para que tu asistente de IA escriba y versione tu tesis o trabajo en formato APA 7 (Markdown a Word), de cualquier carrera. Gratis y abierto.">
+<meta name="twitter:image" content="https://jhoel0521.github.io/apa-kit/img/og.jpg?v=2">
+<meta name="twitter:image:alt" content="apa-kit: tu tesis en formato APA 7 con tu asistente de IA">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"SoftwareApplication","name":"apa-kit","url":"https://jhoel0521.github.io/apa-kit/","description":"Skills para que tu asistente de IA escriba y versione tu tesis o trabajo en formato APA 7 (Markdown a Word), de cualquier carrera. Gratis y abierto.","applicationCategory":"EducationalApplication","operatingSystem":"Windows, macOS, Linux","inLanguage":"es","isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"image":"https://jhoel0521.github.io/apa-kit/img/og.jpg","sameAs":["https://github.com/jhoel0521/apa-kit"]}
+</script>
+<style>
+:root {
+  --bg: #fbfaf7; --surface: #ffffff; --text: #1d2430; --muted: #5a6475; --line: #dcd8cf;
+  --accent: #1f4e79; --accent-text: #ffffff; --soft: #eaf1f8; --warn-bg: #fff4d6; --warn-line: #e0b34a;
+  --code-bg: #f1efe9; --ok: #1d6b3a;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #14171c; --surface: #1c2027; --text: #e8eaee; --muted: #a2abba; --line: #323844;
+    --accent: #7db3e6; --accent-text: #0e1b29; --soft: #1b2733; --warn-bg: #3a3017; --warn-line: #8a6d1d;
+    --code-bg: #12151a; --ok: #6bcf8e;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #14171c; --surface: #1c2027; --text: #e8eaee; --muted: #a2abba; --line: #323844;
+  --accent: #7db3e6; --accent-text: #0e1b29; --soft: #1b2733; --warn-bg: #3a3017; --warn-line: #8a6d1d;
+  --code-bg: #12151a; --ok: #6bcf8e;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); line-height: 1.6;
+  font: 17px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.wrap { max-width: 880px; margin: 0 auto; padding: 0 16px; }
+header.top { border-bottom: 1px solid var(--line); background: var(--surface); }
+header.top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-top: 12px; padding-bottom: 12px; flex-wrap: wrap; }
+.brand { font-weight: 700; color: var(--text); text-decoration: none; }
+nav a { color: var(--muted); text-decoration: none; margin-left: 16px; font-size: 15px; }
+nav a:hover, nav a:focus-visible { color: var(--accent); text-decoration: underline; }
+.hero { padding: 48px 0 32px; }
+h1 { font-size: clamp(28px, 5vw, 42px); line-height: 1.15; margin: 0 0 12px; letter-spacing: -0.01em; }
+.lead { font-size: 19px; color: var(--muted); max-width: 640px; margin: 0 0 24px; }
+.btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn {
+  display: inline-block; padding: 12px 20px; border-radius: 8px; border: 1px solid var(--accent);
+  background: var(--accent); color: var(--accent-text); font-weight: 600; text-decoration: none; cursor: pointer; font-size: 16px;
+}
+.btn.sec { background: transparent; color: var(--accent); }
+.btn:hover { filter: brightness(1.08); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+.chip { font-size: 14px; padding: 4px 12px; border-radius: 999px; background: var(--soft); color: var(--accent); }
+section { padding: 32px 0; border-top: 1px solid var(--line); }
+h2 { font-size: 26px; margin: 0 0 16px; }
+h3 { font-size: 19px; margin: 0 0 6px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+.card p { margin: 0 0 8px; color: var(--muted); }
+.card a { color: var(--accent); font-weight: 600; }
+ol.steps { padding-left: 0; list-style: none; counter-reset: s; display: grid; gap: 14px; margin: 0; }
+ol.steps li { counter-increment: s; position: relative; padding-left: 52px; }
+ol.steps li::before {
+  content: counter(s); position: absolute; left: 0; top: 0; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-text); display: grid; place-items: center; font-weight: 700;
+}
+ol.steps strong { display: block; }
+.tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.tab {
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--text); cursor: pointer; font-size: 15px;
+}
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+.panel[hidden] { display: none; }
+pre, code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+pre {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 14px; margin: 8px 0 12px;
+  overflow-x: auto; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+}
+code { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; font-size: 0.92em; }
+pre code { background: none; padding: 0; }
+.prompt { max-height: 320px; overflow: auto; }
+.row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.status { color: var(--ok); font-weight: 600; font-size: 15px; }
+.notice { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 8px; padding: 12px 16px; margin: 0 0 16px; }
+.note { color: var(--muted); font-size: 15px; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin-bottom: 10px; }
+summary { cursor: pointer; font-weight: 600; }
+details p { margin: 10px 0 0; color: var(--muted); }
+footer { border-top: 1px solid var(--line); padding: 24px 0 48px; color: var(--muted); font-size: 15px; }
+footer a { color: var(--accent); }
+@media (max-width: 520px) { nav a { margin-left: 10px; } .hero { padding-top: 32px; } }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" style="display:inline-flex;align-items:center;gap:8px"><img src="img/logo-256.png" width="28" height="28" alt="">apa-kit</a>
+    <nav aria-label="Secciones">
+      <a href="#como">Cómo funciona</a>
+      <a href="#instalar">Instalar</a>
+      <a href="#tipos">Tipos</a>
+      <a href="#faq">Preguntas</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="hero">
+    <h1>Tu documento en formato APA 7, con tu asistente de IA</h1>
+    <p class="lead">apa-kit son <strong>skills</strong> para que un agente (Claude, Codex…) cree y versione tu tesis, trabajo
+      o informe, de cualquier carrera. Los capítulos viven en archivos de texto, un script los convierte en un
+      <strong>Word</strong> con márgenes, sangrías, títulos, tablas, figuras, índice y referencias, y git guarda cada versión.
+      No hay que descargar una plantilla ni saber programar.</p>
+    <div class="btns">
+      <a class="btn" href="#instalar">Instalar apa-kit</a>
+      <a class="btn sec" href="https://github.com/jhoel0521/apa-kit" rel="noopener">Ver en GitHub</a>
+    </div>
+    <div class="chips" aria-label="Características">
+      <span class="chip">Gratis y de código abierto (MIT)</span>
+      <span class="chip">Cualquier carrera</span>
+      <span class="chip">Windows · macOS · Linux</span>
+      <span class="chip">Tus datos no se suben</span>
+    </div>
+  </div>
+
+  <div id="movil" class="notice" hidden>
+    <strong>Estás en un celular o una tableta.</strong> apa-kit necesita una computadora con Windows, macOS o Linux
+    (iPhone y iPad no permiten instalar Python). Puedes leer esta página aquí y abrirla después en tu computadora.
+  </div>
+
+  <section id="como">
+    <h2>Cómo funciona</h2>
+    <ol class="steps">
+      <li><strong>Instalas las skills</strong>Una sola vez, en tu asistente (abajo, según el que uses).</li>
+      <li><strong>Le dices lo que quieres</strong>«Quiero escribir mi tesis en formato APA», «ya tengo mi tesis en Word, pásala a APA», «ayúdame con mi introducción», «genera mi Word».</li>
+      <li><strong>Abres el Word</strong>Queda en la carpeta <code>dist/</code> de tu documento. Aceptas «actualizar campos» y el índice se llena solo.</li>
+    </ol>
+    <p class="note">El asistente no inventa datos ni referencias: lo que no sepa lo deja como <code>[[pendiente]]</code>. Tus datos
+      personales viven en un archivo <code>.env</code> que nunca se versiona, y si editas el Word a mano, apa-kit no lo sobrescribe.</p>
+  </section>
+
+  <section id="instalar">
+    <h2>Instalar</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Cowork o claude.ai</h3>
+        <p>Sin programar. Descarga el paquete único y súbelo en la configuración de skills de tu aplicación.</p>
+        <p><a href="https://github.com/jhoel0521/apa-kit/releases/latest/download/apa-kit-cowork.zip" rel="noopener">Descargar apa-kit-cowork.zip</a></p>
+      </div>
+      <div class="card">
+        <h3>Claude Code (plugin)</h3>
+        <pre><code id="cmd-plugin">/plugin install apa-kit --marketplace jhoel0521/apa-kit</code></pre>
+        <div class="row"><button class="btn sec" data-copy="cmd-plugin">Copiar</button><span class="status" role="status" aria-live="polite"></span></div>
+      </div>
+      <div class="card">
+        <h3>Claude Code, Codex, Cursor, Gemini…</h3>
+        <pre><code id="cmd-npx">npx skills add jhoel0521/apa-kit</code></pre>
+        <div class="row"><button class="btn sec" data-copy="cmd-npx">Copiar</button><span class="status" role="status" aria-live="polite"></span></div>
+      </div>
+    </div>
+    <p class="note">Necesitas <strong>Python 3.9 o superior</strong> en el equipo donde tu asistente ejecuta comandos; la primera vez,
+      apa-kit instala lo que falte por ti. Si tu asistente no admite skills, pégale este texto:</p>
+    <pre class="prompt"><code id="txt-sin-skills">Quiero escribir un documento en formato APA 7 con apa-kit. Clona https://github.com/jhoel0521/apa-kit
+(git clone --depth 1) en una carpeta TEMPORAL fuera de mi proyecto, lee skills/apa-guia/SKILL.md y
+skills/apa-init/SKILL.md, y sigue apa-init paso a paso usando esa carpeta como ASSETS
+(skills/apa-init/assets). No escribas dentro de la carpeta clonada; todo se crea en mi carpeta de trabajo.
+Pregúntame antes de instalar algo y no inventes datos ni referencias.</code></pre>
+    <div class="row"><button class="btn" data-copy="txt-sin-skills">Copiar texto</button><span class="status" role="status" aria-live="polite"></span></div>
+    <p class="note">Guía paso a paso para quien no programa:
+      <a href="https://github.com/jhoel0521/apa-kit/blob/main/docs/guia-estudiantes.md" rel="noopener">guía para estudiantes</a>.</p>
+  </section>
+
+  <section id="tipos">
+    <h2>Tipos de documento</h2>
+    <p class="note">El asistente te pregunta cuál es el tuyo. Todo se ajusta después (numeración, saltos de página, fuente, «Cuadro» en vez de «Tabla»…).</p>
+    <div class="grid">
+      <div class="card"><h3>tesis</h3><p>Tesis de cualquier carrera: capítulos numerados, cada uno en página nueva, con índice y listas.</p></div>
+      <div class="card"><h3>tesis-software</h3><p>Tesis de sistemas: análisis, diseño, implementación y pruebas.</p></div>
+      <div class="card"><h3>trabajo-estudiante</h3><p>Ensayo, monografía o trabajo de curso, con portada de estudiante APA 7.</p></div>
+      <div class="card"><h3>articulo</h3><p>Artículo o trabajo profesional: encabezado con título corto, nota del autor, Método, Resultados y Discusión.</p></div>
+      <div class="card"><h3>informe</h3><p>Informe técnico, de práctica o de proyecto, con secciones numeradas e índice.</p></div>
+      <div class="card"><h3>libre</h3><p>Cualquier otro: tu institución dicta el índice y el asistente lo arma contigo.</p></div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>¿Necesito saber programar o usar git?</summary><p>No. Git es opcional: sirve para guardar cada versión y volver atrás, y tu asistente te lo explica si lo quieres. Lo único que necesitas en el equipo es Python.</p></details>
+    <details><summary>¿Y si ya tengo mi tesis en Word o Google Docs?</summary><p>Dile «ya tengo mi tesis en Word, pásala a APA». Se convierte a capítulos de texto sin modificar tu archivo original, y lo que no se pueda convertir (ecuaciones, notas al pie…) queda marcado para resolverlo contigo.</p></details>
+    <details><summary>¿Dónde quedan mis datos personales?</summary><p>Solo en un archivo <code>.env</code> dentro de tu carpeta, que git ignora. No se copian a los capítulos, a la configuración ni a los commits.</p></details>
+    <details><summary>Edité el Word a mano y regeneré. ¿Perdí mis cambios?</summary><p>No: apa-kit se niega a sobrescribir un Word que cambió después de generarse. Renómbralo o cambia el nombre de salida en <code>documento.toml</code>.</p></details>
+    <details><summary>Usaba la plantilla anterior (carpeta <code>docs/</code>).</summary><p>Hasta la versión 0.1.0 esto era una plantilla para clonar. Puedes seguir con ella descargando la <a href="https://github.com/jhoel0521/apa-kit/releases/tag/v0.1.0" rel="noopener">versión 0.1.0</a>, o pasar al kit y pedirle a tu asistente «migra mi documento a apa-kit»: tu contenido no se toca.</p></details>
+    <details><summary>Algo no funciona.</summary><p><a href="https://github.com/jhoel0521/apa-kit/issues/new/choose" rel="noopener">Abre un reporte</a> con tu sistema, tu versión de Python y el mensaje de error. No pegues datos personales ni el contenido de tu tesis.</p></details>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Licencia <a href="https://github.com/jhoel0521/apa-kit/blob/main/LICENSE" rel="noopener">MIT</a>.
+      Código en <a href="https://github.com/jhoel0521/apa-kit" rel="noopener">github.com/jhoel0521/apa-kit</a>.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var plat = (navigator.platform || "") + " " + (navigator.userAgent || "");
+  if (/iPhone|iPad|iPod|Android/i.test(plat)) document.getElementById("movil").hidden = false;
+
+  function copiar(texto) {
+    if (navigator.clipboard && window.isSecureContext) return navigator.clipboard.writeText(texto);
+    return new Promise(function (ok, fallo) {
+      var t = document.createElement("textarea");
+      t.value = texto; t.style.position = "fixed"; t.style.opacity = "0";
+      document.body.appendChild(t); t.select();
+      try { document.execCommand("copy") ? ok() : fallo(); } catch (e) { fallo(e); } finally { document.body.removeChild(t); }
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll("[data-copy]"), function (b) {
+    b.addEventListener("click", function () {
+      var estado = b.parentNode.querySelector(".status");
+      var texto = document.getElementById(b.getAttribute("data-copy")).textContent;
+      copiar(texto).then(function () { estado.textContent = "Copiado"; }, function () { estado.textContent = "Selecciona el texto y cópialo a mano"; });
+      setTimeout(function () { estado.textContent = ""; }, 3000);
+    });
+  });
+})();
+</script>
+</body>
+</html>

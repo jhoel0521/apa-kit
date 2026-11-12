@@ -23,6 +23,8 @@ Gracias por ayudar. apa-kit quiere servir a cualquier agente, carrera y tipo de 
 | Mejorar la importación de Word | `skills/apa-init/assets/scripts/importar_docx.py` |
 | Ajustar el flujo de una skill | `skills/<skill>/SKILL.md` |
 | Reglas y sintaxis | `skills/apa-guia/references/` |
+| El **sitio web** (SEO, textos, imágenes) | `sitio/` (se publica solo al fusionar en `main`; no existe rama `gh-pages`) |
+| Regenerar el **logo y las imágenes** | `herramientas/arte/preparar_arte.py` (instrucciones en su cabecera) |
 
 ## Agregar un tipo de documento
 1. Crea `skills/apa-init/assets/tipos/<tipo>/` con:
@@ -41,6 +43,7 @@ python3 -m pip install -r skills/apa-init/assets/scripts/requirements.txt   # Wi
 python3 tests/prueba_humo.py          # crea cada tipo, importa un Word, genera, sincroniza, migra y empaqueta
 python3 herramientas/empaquetar.py    # paquetes en build/ (ignorada por git)
 claude plugin validate .              # el manifiesto del plugin
+python3 tests/probar_sitio.py         # SEO, vista previa al compartir, imágenes y sitemap de sitio/
 ```
 La CI repite la prueba en Windows, macOS y Linux con Python 3.9 y 3.13 (`.github/workflows/probar.yml`).
 Todo cambio en `scripts/` debe pasarla.
