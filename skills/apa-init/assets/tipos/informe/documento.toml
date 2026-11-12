@@ -1,0 +1,39 @@
+# Configuración del documento. NO pongas aquí datos personales: usa {{CLAVE}} y el archivo .env.
+
+[kit]
+tipo = "informe"
+descripcion = "Informe técnico, de práctica, de pasantía o de proyecto. Secciones numeradas, texto seguido, con índice."
+version_kit = "0"
+
+[documento]
+titulo = "[[Título del informe]]"
+subtitulo = "{{TIPO_INFORME}}"
+salida = "Informe"                       # dist/Informe.docx
+papel = "carta"                          # carta | a4 | oficio
+fuente = "Times New Roman"               # APA 7 admite también Calibri 11 o Arial 11
+tamano = 12
+idioma = "es"
+justificar = false
+numerar_titulos = true                   # 1., 1.1., 1.1.1. automáticos
+salto_nivel1 = false                     # las secciones corren seguidas (true: cada una en página nueva)
+etiqueta_seccion = "Sección"
+formato_capitulo = "{n}. {titulo}"
+niveles_indice = 3
+etiqueta_tabla = "Tabla"
+etiqueta_figura = "Figura"
+logo = "recursos/logos/logo.png"
+logo_ancho_cm = 4
+
+[portada]
+espacios_arriba = 2
+lineas = [
+  "{{AUTOR}}",
+  "{{ORGANIZACION}}",
+  "Supervisor: {{SUPERVISOR}}",
+  "{{CIUDAD}}, {{FECHA}}",
+]
+
+[preliminares]
+orden = ["portada", "previos", "indice", "lista_tablas", "lista_figuras"]
+
+[variables]

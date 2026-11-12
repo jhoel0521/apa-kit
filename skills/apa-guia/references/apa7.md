@@ -23,8 +23,15 @@ son del autor. Cuando la institución pida algo distinto de APA 7, manda la inst
   (ver `tipos.md`).
 - **Lenguaje:** sin sesgo, claro y conciso.
 
+## Portada y encabezado
+- La portada es un bloque configurable en `[portada]`: título en negrita y las líneas que definas. Los
+  tipos `trabajo-estudiante` (curso, docente, fecha) y `articulo` (afiliación y **nota del autor**) ya
+  traen la suya.
+- `encabezado = "TÍTULO CORTO"` en `[documento]` pone el título corto a la izquierda y el número a la
+  derecha en todas las páginas (trabajos profesionales). Sin él, solo el número.
+- La parte `titulo_cuerpo` de `[preliminares].orden` repite el título, en negrita y centrado, al comenzar
+  el texto, como pide APA 7.
+
 ## Qué no cubre aún el kit
-- Portada APA 7 «de estudiante» y «profesional» como tipos propios, encabezado con título corto y nota
-  de autor: llegan en tipos de documento posteriores. Hoy la portada es un bloque de líneas
-  configurable en `[portada]`.
 - Niveles de título 5, notas al pie y ecuaciones (el importador las marca `[[revisar: …]]`).
+- Validar que una referencia exista o esté bien formada: eso lo confirma el autor.

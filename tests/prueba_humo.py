@@ -121,6 +121,47 @@ def probar_tipos(tmp):
     return proyecto
 
 
+def probar_demas_tipos(tmp):
+    """Los tipos restantes se generan, y los trabajos profesionales traen encabezado, nota del autor y título repetido."""
+    from docx import Document
+    proyecto = tmp / "otros"
+    proyecto.mkdir()
+    esperado = {"trabajo-estudiante": "Trabajo", "informe": "Informe", "tesis-software": "Tesis", "articulo": "Articulo"}
+    for tipo, salida in esperado.items():
+        code, sal = correr(proyecto, INICIAR, "--tipo", tipo, "--destino", tipo)
+        ok(f"iniciar.py crea el tipo '{tipo}'", code == 0, sal[-300:])
+        code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", tipo)
+        docx = proyecto / tipo / "dist" / f"{salida}.docx"
+        if not ok(f"genera el tipo '{tipo}'", code == 0 and docx.exists(), sal[-400:]):
+            continue
+        d = Document(docx)
+        parrafos = [p.text for p in d.paragraphs]
+        encabezado = d.sections[0].header.paragraphs[0].text
+        titulos = titulos_nivel1(docx)
+        if tipo == "articulo":
+            ok("articulo: encabezado con título corto y número de página",
+               "TÍTULO CORTO" in encabezado and "PAGE" in d.sections[0].header.paragraphs[0]._p.xml, encabezado)
+            ok("articulo: nota del autor en la portada", "Nota del autor" in parrafos)
+            ok("articulo: el título se repite al comenzar el texto", sum("Título del artículo" in t for t in parrafos) == 2)
+            ok("articulo: sin números ni saltos en los títulos",
+               all(not t[0][:1].isdigit() and not t[1] for t in titulos if not t[0].startswith("Referencias")), str(titulos))
+        elif tipo == "trabajo-estudiante":
+            ok("trabajo-estudiante: sin encabezado de título corto", "TÍTULO" not in encabezado.upper(), encabezado)
+            ok("trabajo-estudiante: el título se repite al comenzar el texto",
+               sum("Título del trabajo" in t for t in parrafos) == 2)
+            ok("trabajo-estudiante: sin índice (no hay Heading de contenido)", not any(t == "Contenido" for t in parrafos))
+        elif tipo == "informe":
+            ok("informe: secciones numeradas «1. Introducción» sin salto de página",
+               any(t[0].startswith("1. ") for t in titulos) and not any(t[1] for t in titulos if t[0][:1].isdigit()), str(titulos))
+        elif tipo == "tesis-software":
+            ok("tesis-software: usa la variable NOMBRE_SISTEMA", any("Nombre del sistema" in t for t in parrafos))
+            ok("tesis-software: capítulos de análisis y pruebas", any("Desarrollo del Proyecto" in t[0] for t in titulos)
+               and any("Pruebas y Resultados" in t[0] for t in titulos), str(titulos))
+    code, sal = correr(proyecto, INICIAR, "--listar")
+    ok("iniciar.py --listar muestra los seis tipos",
+       all(t in sal for t in ("tesis", "tesis-software", "libre", "informe", "articulo", "trabajo-estudiante")), sal)
+
+
 def probar_importar(tmp, proyecto):
     from PIL import Image
     Image.new("RGB", (200, 100), "#4477aa").save(tmp / "figura.png")
@@ -221,6 +262,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="apa-kit-humo-") as tmp:
         tmp = Path(tmp)
         proyecto = probar_tipos(tmp)
+        probar_demas_tipos(tmp)
         probar_importar(tmp, proyecto)
         probar_sincronizar(proyecto)
         probar_revisar(proyecto)

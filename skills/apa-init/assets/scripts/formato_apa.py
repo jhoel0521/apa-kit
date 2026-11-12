@@ -6,7 +6,7 @@ import re
 
 from docx import Document
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_COLOR_INDEX, WD_LINE_SPACING
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_COLOR_INDEX, WD_LINE_SPACING, WD_TAB_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -21,8 +21,10 @@ TOKEN = re.compile(r"(\*\*[^*]+\*\*|\[[^\[\]]+\]\([^)]+\)|\[\[[^\]]+\]\]|`[^`]+`
 
 class DocumentoAPA:
     def __init__(self, fuente="Times New Roman", tamano=12, idioma="es", papel="carta",
-                 justificar=False, etiquetas=None, salto_nivel1=False):
+                 justificar=False, etiquetas=None, salto_nivel1=False, encabezado=None):
         self.doc = Document()
+        # Texto del encabezado (título corto en mayúsculas, trabajos profesionales APA 7); None = solo el número.
+        self.encabezado = encabezado
         self.fuente, self.tamano, self.idioma = fuente, tamano, idioma
         self.justificar = justificar
         # True: cada título de nivel 1 empieza página (tesis). APA 7 no lo exige (artículos, informes).
@@ -151,7 +153,12 @@ class DocumentoAPA:
         for lado in ("left_margin", "right_margin", "top_margin", "bottom_margin"):
             setattr(sec, lado, Cm(MARGEN))
         hdr = sec.header.paragraphs[0]
-        hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        if self.encabezado:   # título corto a la izquierda, número de página a la derecha
+            hdr.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            hdr.paragraph_format.tab_stops.add_tab_stop(Cm(self.ancho_texto), WD_TAB_ALIGNMENT.RIGHT)
+            hdr.add_run(self.encabezado + "\t")
+        else:
+            hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         self.campo(hdr, "PAGE", "1")
         # Word pregunta al abrir si actualiza índices y numeración (equivale a Ctrl+A, F9).
         upd = OxmlElement("w:updateFields")

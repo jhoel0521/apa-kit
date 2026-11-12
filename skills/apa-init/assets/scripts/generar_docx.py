@@ -358,7 +358,20 @@ def portada(doc, cfg, sub):
     doc.vacio()
     for ln in p.get("lineas", []):
         doc.parrafo(sub(ln), "Normal", "centro")
+    if p.get("nota_autor"):   # trabajos profesionales APA 7: «Nota del autor» al pie de la portada
+        doc.vacio()
+        for r in doc.parrafo(sub(p.get("etiqueta_nota_autor", "Nota del autor")), "Normal", "centro").runs:
+            r.bold = True
+        for ln in p["nota_autor"]:
+            doc.parrafo(sub(ln))
     doc.salto()
+
+
+def titulo_cuerpo(doc, cfg, sub):
+    """APA 7: el título se repite, en negrita y centrado, al comenzar el texto del trabajo."""
+    doc.salto()
+    for r in doc.parrafo(sub(cfg.get("titulo", "[[Título del documento]]")), "Normal", "centro").runs:
+        r.bold = True
 
 
 # ================================================================ protección del .docx editado a mano
@@ -432,7 +445,8 @@ def main():
     doc = DocumentoAPA(dcfg.get("fuente", "Times New Roman"), int(dcfg.get("tamano", 12)),
                        dcfg.get("idioma", "es"), dcfg.get("papel", "carta"), dcfg.get("justificar", False),
                        {"Tabla": dcfg.get("etiqueta_tabla", "Tabla"), "Figura": dcfg.get("etiqueta_figura", "Figura")},
-                       salto_nivel1=bool(dcfg.get("salto_nivel1", False)))
+                       salto_nivel1=bool(dcfg.get("salto_nivel1", False)),
+                       encabezado=sub(dcfg["encabezado"]) if dcfg.get("encabezado") else None)
     portada_cfg = {**dcfg, "portada": cfg.get("portada", {})}
     for parte in cfg.get("preliminares", {}).get("orden", ["portada", "previos", "indice",
                                                             "lista_tablas", "lista_figuras"]):
@@ -441,6 +455,8 @@ def main():
         elif parte == "previos":
             for _, bloques in secciones[:len(previos)]:
                 renderizar(doc, bloques, sub, dcfg)
+        elif parte == "titulo_cuerpo":
+            titulo_cuerpo(doc, dcfg, sub)
         elif parte == "indice":
             doc.indice(int(dcfg.get("niveles_indice", 3)))
         elif parte == "lista_tablas":
