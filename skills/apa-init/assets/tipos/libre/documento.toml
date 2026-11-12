@@ -1,0 +1,37 @@
+# Configuración del documento. NO pongas aquí datos personales: usa {{CLAVE}} y el archivo .env.
+
+[kit]
+tipo = "libre"
+descripcion = "Documento APA 7 con el índice que dicte tu institución: el agente lo arma contigo. Sin numerar, sin saltos."
+version_kit = "0"
+
+[documento]
+titulo = "[[Título del documento]]"
+subtitulo = ""
+salida = "Documento"                     # dist/Documento.docx
+papel = "carta"                          # carta | a4 | oficio
+fuente = "Times New Roman"               # APA 7 admite también Calibri 11 o Arial 11
+tamano = 12
+idioma = "es"
+justificar = false
+numerar_titulos = false                  # true para Capítulo N. / N.M. automáticos
+salto_nivel1 = false                     # true para que cada título de nivel 1 empiece página
+etiqueta_seccion = "Sección"
+niveles_indice = 3
+etiqueta_tabla = "Tabla"
+etiqueta_figura = "Figura"
+logo = "recursos/logos/logo.png"
+logo_ancho_cm = 4
+
+[portada]
+espacios_arriba = 1
+lineas = [
+  "{{AUTOR}}",
+  "{{INSTITUCION}}",
+  "{{FECHA}}",
+]
+
+[preliminares]
+orden = ["portada", "previos", "indice", "lista_tablas", "lista_figuras"]
+
+[variables]

@@ -1,19 +1,16 @@
-# Datos personales: solo en tu disco (copia .env.example como .env)
-.env
-
-# Copia de tu Word original importado (tiene tus datos personales)
-original/
-
-# Documentos de salida: se regeneran con scripts/generar_docx.py
-dist/*
-!dist/.gitkeep
-*.docx
-*.pdf
-
-# Python: entorno aislado y caché
+# Entornos y caché de Python (al probar los scripts desde el repositorio)
 .venv/
 __pycache__/
 *.pyc
 
-# Archivos temporales de Word
+# Salida de pruebas locales y documentos de trabajo
+.apa/
+*.docx
+*.pdf
+dist/
+.env
+original/
 ~$*
+
+# Paquetes generados por herramientas/empaquetar.py
+build/
