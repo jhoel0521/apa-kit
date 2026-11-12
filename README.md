@@ -1,4 +1,10 @@
-# apa-kit
+<p align="center"><a href="https://jhoel0521.github.io/apa-kit/"><img src="docs/img/logo.png" width="120" alt="Sitio de apa-kit"></a></p>
+
+<h1 align="center">apa-kit</h1>
+
+<p align="center"><b>Tu tesis en formato APA 7, con tu asistente de IA.</b><br>
+Skills para Claude, Codex y otros agentes · Markdown → Word · cualquier carrera<br>
+<a href="https://jhoel0521.github.io/apa-kit/">Sitio</a> · <a href="https://github.com/jhoel0521/apa-kit/releases/latest">Descargar</a> · <a href="docs/guia-estudiantes.md">Guía para estudiantes</a></p>
 
 Skills para que un agente de IA (Claude Code, Cowork, Codex…) cree y versione **documentos académicos en
 formato APA 7**: tesis, trabajos de curso, artículos e informes, de cualquier carrera. Los capítulos viven

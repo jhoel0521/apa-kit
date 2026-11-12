@@ -3,6 +3,9 @@
 Versionado semántico en fase de desarrollo (`0.x`): puede haber cambios grandes entre versiones menores.
 
 ## Sin publicar
+### Nuevo
+- Logo en el README y archivos para compartir en `docs/img/` (logo, imagen social de GitHub, historia vertical).
+
 ### Cambia
 - El sitio web pasa de la rama `gh-pages` a la carpeta `sitio/` de `main`, con validación en cada PR (`tests/probar_sitio.py`) y publicación automática (`.github/workflows/sitio.yml`).
 - `herramientas/arte/preparar_arte.py` genera el logo y las imágenes para compartir a partir de las imágenes de la IA.
