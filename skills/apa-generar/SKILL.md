@@ -4,7 +4,7 @@ description: Genera el documento Word (.docx) con formato APA 7 a partir de los 
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md. Requiere Python 3.9+ y la carpeta .apa/ creada por apa-init.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
   kit: apa-kit
   profile: core
 ---
