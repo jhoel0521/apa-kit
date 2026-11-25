@@ -4,7 +4,7 @@ description: Prepara un proyecto para escribir un documento con formato APA 7 (t
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md (Claude Code, Cowork, Codex…). Scripts en Python 3.9 o superior; el verificador instala python-docx y Pillow.
 metadata:
-  version: "0.3.0"
+  version: "0.3.1"
   kit: apa-kit
   profile: core
 ---
@@ -26,7 +26,8 @@ Antes de empezar, lee `skills/apa-guia/SKILL.md` (reglas y lenguaje); si no la t
 ## 1. Detectar
 Mira la carpeta de trabajo y decide el modo:
 - **No hay `.apa/`** → *crear* (paso 2).
-- **Hay `.apa/`** y el usuario quiere actualizar → *sincronizar* (paso 5).
+- El usuario pide **actualizar apa-kit** («actualiza apa-kit», «hay versión nueva») → *actualizar* (paso 5),
+  haya o no `.apa/`.
 - **Hay un `docs/` con `scripts/generar_docx.py` y `documento.toml`** (la plantilla antigua `v0.1.0`) →
   *migrar* (paso 6).
 - Si ya hay un `.docx` del usuario con su trabajo avanzado → después de crear, ofrece **apa-importar**.
@@ -90,7 +91,30 @@ carpeta de trabajo. Comprueba que `.env`, `original/` y `dist/` quedan ignorados
 No hagas commit ni push sin que lo pida. Si lo sube a internet, que sea un repositorio **privado**.
 Sin git: sugiere copiar la carpeta con la fecha antes de cada revisión con el tutor.
 
-## 5. Sincronizar
+## 5. Actualizar apa-kit
+Actualizar tiene dos partes: **la skill** (lo que el agente tiene instalado) y **el motor del proyecto**
+(`.apa/scripts/`, una copia de la skill). Sincronizar sin actualizar antes la skill no trae nada nuevo.
+
+**5.1 Comprobar** (consulta en GitHub la última versión publicada; no envía datos del usuario):
+```bash
+python -B ASSETS/scripts/iniciar.py --version
+```
+Muestra la versión de la skill, la del proyecto y la última publicada, y qué hacer. Si no hay internet, dilo y
+pide al usuario que mire https://github.com/jhoel0521/apa-kit/releases.
+
+**5.2 Si dice `ACTUALIZAR LA SKILL`**, actualízala según cómo se instaló (la ruta de `ASSETS` lo delata). No
+descargues ni reemplaces nada sin permiso:
+- **Plugin de Claude Code** (`ASSETS` está bajo `.claude/plugins/`): en una terminal,
+  `claude plugin marketplace update apa-kit` y `claude plugin update apa-kit@apa-kit` (o `/plugin` → apa-kit →
+  actualizar). Pide reiniciar la sesión para que cargue la versión nueva.
+- **Cowork o claude.ai** (skill única `apa-kit`): el usuario descarga
+  https://github.com/jhoel0521/apa-kit/releases/latest/download/apa-kit-cowork.zip y la sube en
+  *Configuración → Skills*, reemplazando la anterior. Luego abre una conversación nueva.
+- **Skills sueltas** (otro agente): reemplazar cada carpeta `apa-*` con los `.zip` de la misma página de Releases.
+
+Después, en la sesión nueva, vuelve a ejecutar `--version`: la skill ya debe decir la última.
+
+**5.3 Sincronizar el proyecto** (cuando `--version` dice `SINCRONIZAR`):
 ```bash
 python -B ASSETS/scripts/iniciar.py --sincronizar
 ```
@@ -98,6 +122,9 @@ Reemplaza `.apa/scripts/` por la versión de la skill. **No toca** capítulos, `
 Si hay cambios en `git status` bajo `.apa/`, muéstralos antes de que el usuario haga commit.
 Un documento anterior a la 0.3.0 (con `[portada].lineas` y sin `bloques`) sigue generando la misma portada.
 Si el autor quiere otro orden o tamaños, ofrécele la entrevista de portada (paso 3.1) para pasar a bloques.
+
+**5.4 Contar qué cambió:** resume al usuario las novedades de la versión (enlace que da `--version`), sobre todo
+lo que le pide hacer algo. Luego regenera con **apa-generar** y compara con el Word anterior.
 
 ## 6. Migrar la plantilla antigua
 ```bash

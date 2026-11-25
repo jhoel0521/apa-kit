@@ -44,6 +44,26 @@ skills/apa-init/SKILL.md, y sigue apa-init paso a paso usando esa carpeta como A
 Pregúntame antes de instalar algo y no inventes datos ni referencias.
 ```
 
+## Actualizar
+Dile al agente, en la carpeta de tu documento:
+
+```text
+Actualiza apa-kit a la última versión: comprueba con iniciar.py --version, actualiza la skill si hace
+falta y después sincroniza mi proyecto. Cuéntame qué cambió y pregúntame antes de reemplazar algo.
+```
+
+`apa-init` compara la skill instalada, el motor de tu proyecto (`.apa/`) y la última versión de
+[Releases](https://github.com/jhoel0521/apa-kit/releases). Según cómo instalaste apa-kit:
+
+| Instalación | Actualizar la skill |
+|---|---|
+| Plugin de Claude Code | `claude plugin marketplace update apa-kit` y `claude plugin update apa-kit@apa-kit`; reinicia la sesión |
+| Cowork o claude.ai | Descarga otra vez `apa-kit-cowork.zip` de Releases y súbelo en *Configuración → Skills*, reemplazando el anterior |
+| `npx skills` o a mano | Vuelve a instalar las carpetas de `skills/` |
+
+Después el agente ejecuta `iniciar.py --sincronizar`, que copia el motor nuevo a `.apa/scripts/` sin tocar tus
+capítulos, `.env` ni `documento.toml`.
+
 ## Usarlo
 Abre el agente en una carpeta de trabajo y dile lo que quieres, con tus palabras:
 

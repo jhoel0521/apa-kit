@@ -2,6 +2,16 @@
 
 Versionado semántico en fase de desarrollo (`0.x`): puede haber cambios grandes entre versiones menores.
 
+## 0.3.1 — 2026-11-25
+### Nuevo
+- **Actualizar apa-kit de verdad.** `iniciar.py --version` compara la skill instalada, el motor del proyecto
+  (`.apa/VERSION`) y la última versión publicada en GitHub, y dice qué hacer. `apa-init` («actualiza apa-kit»)
+  primero actualiza la skill según cómo se instaló (plugin de Claude Code, Cowork o claude.ai, skills sueltas)
+  y después sincroniza el proyecto. Antes, «actualiza apa-kit» solo copiaba al proyecto la versión de la skill
+  ya instalada, aunque hubiera una más nueva. El README trae la frase para pedírselo al agente.
+- Las versiones 0.3.0 y anteriores no tienen `--version`: para pasar a esta, actualiza la skill a mano una vez
+  (ver «Actualizar» en el README).
+
 ## 0.3.0 — 2026-11-25
 **Para actualizar:** `apa-init` con «actualiza apa-kit» (`iniciar.py --sincronizar`). Los documentos ya creados
 se generan igual que antes: su `documento.toml` no se toca y su portada (`[portada].lineas`) sigue funcionando.

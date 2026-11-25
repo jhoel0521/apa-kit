@@ -317,6 +317,22 @@ def probar_importar(tmp, proyecto):
         ok("importado: conserva acentos y ñ", "ñ" in textos and "ü" in textos)
 
 
+def probar_version(proyecto):
+    """--version compara la skill, el proyecto y la última versión publicada (sin red: APA_KIT_ULTIMA)."""
+    os.environ["APA_KIT_ULTIMA"] = "v99.0.0"
+    code, sal = correr(proyecto, INICIAR, "--version")
+    ok("--version avisa si hay una versión publicada más nueva", code == 0 and "ACTUALIZAR LA SKILL" in sal, sal[-300:])
+    version = (ASSETS / "VERSION").read_text(encoding="utf-8").strip()
+    os.environ["APA_KIT_ULTIMA"] = "v" + version
+    (proyecto / ".apa" / "VERSION").write_text("0.1.0\n", encoding="utf-8")
+    code, sal = correr(proyecto, INICIAR, "--version")
+    ok("--version pide sincronizar si el proyecto quedó atrás", code == 0 and "SINCRONIZAR" in sal, sal[-300:])
+    (proyecto / ".apa" / "VERSION").write_text(version + "\n", encoding="utf-8")
+    code, sal = correr(proyecto, INICIAR, "--version")
+    ok("--version: todo al día", code == 0 and "OK: todo" in sal, sal[-300:])
+    del os.environ["APA_KIT_ULTIMA"]
+
+
 def probar_sincronizar(proyecto):
     caps = huella_carpeta(proyecto / "libre" / "capitulos")
     motor = proyecto / ".apa" / "scripts" / "generar_docx.py"
@@ -604,6 +620,7 @@ def main():
         probar_compatibilidad_02(tmp)
         probar_paquete(tmp)
         probar_importar(tmp, proyecto)
+        probar_version(proyecto)
         probar_sincronizar(proyecto)
         probar_entorno(proyecto)
         probar_revisar(proyecto)

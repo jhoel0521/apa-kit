@@ -7,6 +7,7 @@ usuario, nunca dentro de la skill. Con `python -B` no deja ni caché.
     python -B iniciar.py --tipo tesis --destino tesis          # crea .apa/ y la carpeta tesis/
     python -B iniciar.py --sincronizar                         # actualiza .apa/scripts/ sin tocar el contenido
     python -B iniciar.py --migrar docs                         # convierte el diseño antiguo (docs/scripts/…)
+    python -B iniciar.py --version                             # versión de la skill, del proyecto y la última publicada
 
 Opciones comunes: `--proyecto <carpeta>` (por defecto, la carpeta actual).
 En Windows usa `py -3`; en macOS y Linux, `python3`.
@@ -55,6 +56,51 @@ def salida_utf8():
         sys.stdout.reconfigure(encoding="utf-8")
     except AttributeError:
         pass
+
+
+RELEASES = "https://github.com/jhoel0521/apa-kit/releases"
+API_ULTIMA = "https://api.github.com/repos/jhoel0521/apa-kit/releases/latest"
+
+
+def numero(v):
+    """'v0.3.0' -> (0, 3, 0), para comparar versiones."""
+    return tuple(int(x) for x in re.findall(r"\d+", v)[:3]) or (0,)
+
+
+def ultima_publicada():
+    """Etiqueta de la última versión publicada en GitHub, o None sin internet. No envía ningún dato del usuario.
+    APA_KIT_ULTIMA la fija (para pruebas sin red)."""
+    import json
+    import os
+    import urllib.request
+    if os.environ.get("APA_KIT_ULTIMA"):
+        return os.environ["APA_KIT_ULTIMA"]
+    try:
+        req = urllib.request.Request(API_ULTIMA, headers={"User-Agent": "apa-kit", "Accept": "application/vnd.github+json"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.load(r).get("tag_name")
+    except Exception:
+        return None
+
+
+def version(proyecto):
+    """Compara la skill instalada, el motor del proyecto (.apa/VERSION) y la última versión publicada."""
+    apa = proyecto / ".apa" / "VERSION"
+    en_proyecto = apa.read_text(encoding="utf-8").strip() if apa.exists() else None
+    ultima = ultima_publicada()
+    print(f"skill instalada:   {VERSION}  ({ASSETS})")
+    print(f"motor del proyecto: {en_proyecto or 'sin .apa/ (aún no hay documento)'}")
+    print(f"última publicada:  {ultima.lstrip('v') if ultima else '? (sin conexión con GitHub)'}")
+    if ultima and numero(ultima) > numero(VERSION):
+        print(f"ACTUALIZAR LA SKILL: hay una versión más nueva ({ultima}). Sigue el paso «Actualizar apa-kit» de "
+              f"apa-init según cómo se instaló, y después --sincronizar. Novedades: {RELEASES}/tag/{ultima}")
+    elif en_proyecto and numero(en_proyecto) < numero(VERSION):
+        print("SINCRONIZAR: la skill es más nueva que el motor del proyecto. Ejecuta --sincronizar.")
+    elif en_proyecto and numero(en_proyecto) > numero(VERSION):
+        print("AVISO: el proyecto usa un motor MÁS NUEVO que esta skill. Actualiza la skill; no sincronices "
+              "(volverías a una versión anterior).")
+    else:
+        print("OK: todo está en la última versión" + ("" if ultima else " que se pudo comprobar") + ".")
 
 
 def descripcion(tipo):
@@ -165,6 +211,7 @@ def main():
     ap.add_argument("--listar", action="store_true", help="mostrar los tipos de documento")
     ap.add_argument("--sincronizar", action="store_true", help="actualizar .apa/scripts/ sin tocar el contenido")
     ap.add_argument("--migrar", metavar="CARPETA", help="convertir un documento del diseño antiguo (docs/scripts/…)")
+    ap.add_argument("--version", action="store_true", help="comparar la skill, el proyecto y la última versión publicada")
     args = ap.parse_args()
 
     if args.listar:
@@ -172,6 +219,9 @@ def main():
             print(f"{t:20} {descripcion(t)}")
         return
     proyecto = Path(args.proyecto).resolve()
+    if args.version:
+        version(proyecto)
+        return
     comprobar_destino_fuera_de_skill(proyecto)
     if args.sincronizar:
         sincronizar(proyecto)
@@ -180,7 +230,7 @@ def main():
     elif args.tipo and args.destino:
         crear(proyecto, args.tipo, args.destino)
     else:
-        ap.error("indica --tipo y --destino, o --sincronizar, o --migrar CARPETA, o --listar")
+        ap.error("indica --tipo y --destino, o --sincronizar, o --migrar CARPETA, o --listar, o --version")
 
 
 if __name__ == "__main__":
