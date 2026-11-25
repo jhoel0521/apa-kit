@@ -150,6 +150,10 @@ def probar_tipos(tmp):
            bool(cuerpo) and all(t[1] == salta for t in cuerpo), str(t1))
         ref = [t for t in t1 if t[0].startswith("Referencias")]
         ok(f"'{tipo}': Referencias siempre en página nueva", bool(ref) and ref[0][1] is True, str(t1))
+        from docx import Document
+        texto = "\n".join(p.text for p in Document(docx).paragraphs)
+        ok(f"'{tipo}': el aviso del índice da los atajos correctos (#11)",
+           "Ctrl+E en Word en español" in texto and "Actualizar todo" in texto and "(Ctrl+A, F9)" not in texto)
     ok("iniciar.py no escribió nada dentro de la skill", listado(ASSETS.parent) == antes)
     ok("el motor quedó copiado en .apa/scripts/", (proyecto / ".apa" / "scripts" / "generar_docx.py").exists())
     ok("cada documento trae su .gitignore", (proyecto / "tesis" / ".gitignore").exists())

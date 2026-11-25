@@ -14,6 +14,11 @@ from docx.shared import Cm, Pt, RGBColor
 PAPELES = {"carta": (21.59, 27.94), "a4": (21.0, 29.7), "oficio": (21.59, 35.56)}
 MARGEN = 2.54  # cm (1 pulgada, APA 7)
 SANGRIA = 1.27  # cm (0,5 pulgadas, APA 7)
+# Texto visible en el índice y las listas hasta que se actualizan los campos (#11: en Word en español,
+# seleccionar todo es Ctrl+E; Ctrl+A abre un archivo. En LibreOffice, F9 no actualiza los índices).
+AVISO_CAMPOS = ("Actualice los campos para generar {que}: en Word, acepte «¿actualizar campos?» al abrir, "
+                "o seleccione todo y pulse F9 (Ctrl+E en Word en español, Ctrl+A en inglés, Cmd+A en Mac); "
+                "en LibreOffice, Herramientas, Actualizar, Actualizar todo.")
 
 # **negrita** · [texto](url) · [[pendiente]] · `código` · *cursiva*
 TOKEN = re.compile(r"(\*\*[^*]+\*\*|\[[^\[\]]+\]\([^)]+\)|\[\[[^\]]+\]\]|`[^`]+`|\*[^*\s][^*]*\*)")
@@ -162,7 +167,8 @@ class DocumentoAPA:
         else:
             hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         self.campo(hdr, "PAGE", "1")
-        # Word pregunta al abrir si actualiza índices y numeración (equivale a Ctrl+A, F9).
+        # Word pregunta al abrir si actualiza índices y numeración (equivale a seleccionar todo y F9:
+        # Ctrl+E en Word en español, Ctrl+A en inglés).
         upd = OxmlElement("w:updateFields")
         upd.set(qn("w:val"), "true")
         self.doc.settings.element.append(upd)
@@ -367,12 +373,12 @@ class DocumentoAPA:
 
     def indice(self, niveles=3):
         self._lista_campo("Índice de Contenidos", f'TOC \\o "1-{niveles}" \\h \\z \\u',
-                          "Actualice los campos (Ctrl+A, F9) para generar el índice.")
+                          AVISO_CAMPOS.format(que="el índice"))
 
     def _lista_de(self, tipo):
         n = self.etiquetas[tipo]
         self._lista_campo(f"Lista de {n}s", f'TOC \\h \\z \\c "{n}"',
-                          f"Actualice los campos (Ctrl+A, F9) para generar la lista de {n.lower()}s.")
+                          AVISO_CAMPOS.format(que=f"la lista de {n.lower()}s"))
 
     def lista_tablas(self):
         self._lista_de("Tabla")

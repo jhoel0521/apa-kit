@@ -44,6 +44,8 @@ Explícale: renombrar su Word (p. ej. `Tesis_entregado_2026-11.docx`) o cambiar 
 
 ## 4. Entregar
 Dile dónde quedó el archivo (`<documento>/dist/`) y cómo actualizar índices al abrirlo:
-- **Word** (Windows o Mac): responder **Sí** a «¿actualizar campos?» (o Ctrl/⌘ + A y F9).
-- **LibreOffice:** *Herramientas → Actualizar → Todos los índices y tablas*.
+- **Word:** responder **Sí** a «¿actualizar campos?» al abrir. Si no lo pregunta, seleccionar todo y pulsar
+  F9: en Word en español es **Ctrl + E** y luego F9 (Ctrl + A *abre* un archivo); en Word en inglés,
+  Ctrl + A y F9; en Mac, ⌘ + A y F9.
+- **LibreOffice:** *Herramientas → Actualizar → Actualizar todo* (F9 no actualiza los índices).
 Para entregar, que copie el archivo de `dist/` a otro lado: `dist/` no se versiona.
