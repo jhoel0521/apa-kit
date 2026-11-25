@@ -459,6 +459,103 @@ def probar_revisar(proyecto):
     ok("revisar.py --estricto termina con código 1 si queda algo", code == 1)
 
 
+def probar_revisar_citas(proyecto):
+    """Citas APA 7 bien escritas no dan avisos falsos (#8, #10). Autores y obras inventados."""
+    caps = proyecto / "libre" / "capitulos"
+    capitulo = "\n".join([
+        "# Citas",
+        "",
+        "Así lo plantea Alvarado (2021).",
+        "Uno (Benítez y Cuéllar, 2019). Otro (Dorado & Esquivel, 2018, p. 14).",
+        "Fajardo et al. (2017) señalan algo (Ibarra et ál., 2016) y lo repiten (Ibarra et al, 2016).",
+        "Un grupo (Equipo Alfa Beta, 2024). Equipo Alfa Beta (2024) añade algo.",
+        "Según el Consejo Nacional Ficticio (2020) hay datos.",
+        "Primero (Organización Ficticia de Salud [OFS], 2020). Luego (OFS, 2020, p. 3).",
+        "La Agencia Ejemplo de Datos (AED, 2019) informa. Después AED (2019) agrega.",
+        "Aduanas (Dirección Ficticia de Aduanas, 2021) y su sigla (DFA, 2021).",
+        "Sin fecha (Marín, s. f.), con letra (Navas, s.f.-a) y (Navas, s. f.-b).",
+        "Ortiz (s. f.) sostiene algo. En prensa (Paredes, en prensa).",
+        "Varios años (Quiroga, 2020, 2022) y letras (Rivas, 2015a, 2015b). Mal (Salinas, 2014c).",
+        "Secundaria (Tapia, 2018, como se citó en Urquiza, 2019). Valdez (como se citó en Wilde, 2021) plantea.",
+        "Peal (2018, como se citó en Tsai, 2017) lo dijo.",
+        "Varias (Yáñez, 2012; véase también Zárate, 2013; cf. Arce, 2011).",
+        "Iniciales (B. Cortez, 2010) y (L. Cortez, 2011). Compuesto (Lerma Duarte, 2011, pp. 25-64).",
+        "Sin autor (*Economía regional*, 2008) y (Economía regional…, 2008).",
+        "Personal (E. Mamani, comunicación personal, 8 de febrero de 2021). Herramienta (versión 2020).",
+        "Sin referencia (Nieto, 2009). Mal escrita (Zuleta,2011,pg. 13).",
+        ""])
+    referencias = "\n".join([
+        "# Referencias {.sin-numero}",
+        "",
+        "Alvarado, R. (2021). *Título uno*. Editorial Ejemplo.",
+        "Benítez, A., y Cuéllar, M. (2019). *Título*. Editorial Ejemplo.",
+        "Dorado, L., & Esquivel, T. (2018). *Título*. Editorial Ejemplo.",
+        "Fajardo, P., Gil, R., y Hurtado, S. (2017). *Título*. Editorial Ejemplo.",
+        "Ibarra, C., Jara, D., y Luna, E. (2016). *Título*. Editorial Ejemplo.",
+        "Equipo Alfa Beta. (2024, 23 de octubre). *Título*. Sitio Ejemplo.",
+        "Consejo Nacional Ficticio. (2020). *Título*. Editorial Ejemplo.",
+        "Organización Ficticia de Salud. (2020). *Título*. OFS.",
+        "Agencia Ejemplo de Datos. (2019). *Título*. Editorial Ejemplo.",
+        "Dirección Ficticia de Aduanas (DFA). (2021, 13 de abril). *Título*. Sitio Ejemplo.",
+        "Marín, J. (s.f.). *Título*. Editorial Ejemplo.",
+        "Navas, O. (s. f.-a). *Título uno*. Editorial Ejemplo.",
+        "Navas, O. (s. f.-b). *Título dos*. Editorial Ejemplo.",
+        "Ortiz, Q. (s. f.). *Título*. Editorial Ejemplo.",
+        "Paredes, V. (en prensa). *Título*. Revista Ejemplo.",
+        "Quiroga, W. (2020). *Título uno*. Editorial Ejemplo.",
+        "Quiroga, W. (2022). *Título dos*. Editorial Ejemplo.",
+        "Rivas, X. (2015a). *Título uno*. Editorial Ejemplo.",
+        "Rivas, X. (2015b). *Título dos*. Editorial Ejemplo.",
+        "Salinas, Y. (2014a). *Título uno*. Editorial Ejemplo.",
+        "Salinas, Y. (2014b). *Título dos*. Editorial Ejemplo.",
+        "Urquiza, Z. (2019). *Título*. Editorial Ejemplo.",
+        "Wilde, A. (2021). *Título*. Editorial Ejemplo.",
+        "Tsai, K. (2017). *Título*. Editorial Ejemplo.",
+        "Yáñez, B. (2012). *Título*. Editorial Ejemplo.",
+        "Zárate, C. (2013). *Título*. Editorial Ejemplo.",
+        "Arce, D. (2011). *Título*. Editorial Ejemplo.",
+        "Cortez, B. (2010). *Título uno*. Editorial Ejemplo.",
+        "Cortez, L. (2011). *Título dos*. Editorial Ejemplo.",
+        "Lerma Duarte, H. D. (2011). *Título*. Editorial Ejemplo.",
+        "*Economía regional del altiplano*. (2008). Editorial Ejemplo.",
+        "Zuleta, E. (2011). *Título*. Editorial Ejemplo.",
+        "Olmos, F. (2005). *Título*. Editorial Ejemplo.",
+        ""])
+    (caps / "01-primera-seccion.md").write_text(capitulo, encoding="utf-8")
+    (caps / "90-referencias.md").write_text(referencias, encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre")
+    sin_ref = sal.split("== Citas sin referencia")[1].split("== Referencias que no se citan")[0]
+    sin_cita = sal.split("== Referencias que no se citan")[1].split("== Caracteres")[0]
+    sugerencias = sal.split("== Formato de citas")[1].split("Resumen:")[0]
+    ok("citas: solo 2 citas sin referencia (Nieto 2009, Salinas 2014c)",
+       sin_ref.startswith(": 2") and "Nieto (2009)" in sin_ref and "Salinas (2014c)" in sin_ref, sin_ref)
+    ok("citas: solo 3 referencias sin cita (Olmos, Salinas 2014a y 2014b)",
+       sin_cita.startswith(": 3") and "Olmos (2005)" in sin_cita and "Salinas (2014a)" in sin_cita
+       and "Salinas (2014b)" in sin_cita, sin_cita)
+    for falso in ("Team", "Beta (", "Según", "Tapia", "Valdez", "Peal", "Mamani", "OFS (", "AED (", "Square"):
+        ok(f"citas: no aparece el falso aviso «{falso}»", falso not in sin_ref + sin_cita, sin_ref + sin_cita)
+    ok("citas: sugiere «y» en lugar de «&» (la forma declarada)", "Dorado & Esquivel" in sugerencias, sugerencias)
+    ok("citas: sugiere «et al.» con punto y sin tilde", "Ibarra et ál." in sugerencias and "Ibarra et al," in sugerencias,
+       sugerencias)
+    ok("citas: sugiere «s.f.» (la forma declarada)", "Marín, s. f." in sugerencias, sugerencias)
+    ok("citas: sugiere «p.» y el espacio tras la coma", "pg." in sugerencias and "espacio" in sugerencias, sugerencias)
+    toml = proyecto / "libre" / "documento.toml"
+    texto = toml.read_text(encoding="utf-8")
+    toml.write_text(texto.replace('conjuncion = "y"', 'conjuncion = "&"').replace('sin_fecha = "s.f."', 'sin_fecha = "s. f."'),
+                    encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre")
+    sugerencias = sal.split("== Formato de citas")[1].split("Resumen:")[0]
+    ok("citas: con [citas] «&» y «s. f.», cambian las sugerencias",
+       "Benítez y Cuéllar" in sugerencias and "Dorado & Esquivel" not in sugerencias and "Navas, s.f.-a" in sugerencias,
+       sugerencias)
+    toml.write_text(texto, encoding="utf-8")
+    (caps / "01-primera-seccion.md").write_text("# Uno\n\nTexto (Alvarado & Benítez, 2021).\n", encoding="utf-8")
+    (caps / "90-referencias.md").write_text("# Referencias {.sin-numero}\n\nAlvarado, R., & Benítez, A. (2021). *T*.\n",
+                                            encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre", "--estricto")
+    ok("citas: las sugerencias de formato no cuentan para --estricto", code == 0 and "Dorado" not in sal, sal[-300:])
+
+
 def probar_migrar(tmp):
     """Un documento del diseño antiguo se genera igual que antes y sigue protegido contra regeneración."""
     proyecto = tmp / "antiguo"
@@ -505,6 +602,7 @@ def main():
         probar_sincronizar(proyecto)
         probar_entorno(proyecto)
         probar_revisar(proyecto)
+        probar_revisar_citas(proyecto)
         probar_migrar(tmp)
     print("\nRESULTADO:", "todo bien" if not fallos else f"{len(fallos)} fallo(s): " + "; ".join(fallos))
     sys.exit(1 if fallos else 0)

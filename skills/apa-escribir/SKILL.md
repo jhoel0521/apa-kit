@@ -23,7 +23,10 @@ Trabaja **un capítulo por vez**, en `<documento>/capitulos/NN-nombre.md`. Antes
 3. **Solo editas** los `.md` de `capitulos/`, `recursos/` y `documento.toml`. Nunca un `.docx`.
 4. **Datos personales** solo en `.env`; en los `.md`, `{{CLAVE}}`.
 5. No hagas commit ni push sin que lo pidan.
-6. **Estilo:** puntuación normal, sin rayas (—), guion medio (–) fuera de rangos numéricos, flechas (→),
+6. **Citas en la forma declarada:** usa la conjunción y el «sin fecha» de `[citas]` en `documento.toml`
+   (por defecto `(Pérez y Gómez, 2020)` y `s.f.`). Casos (siglas, sin fecha, en prensa, cita secundaria):
+   `apa7.md`, «Cómo se escribe una cita».
+7. **Estilo:** puntuación normal, sin rayas (—), guion medio (–) fuera de rangos numéricos, flechas (→),
    emojis ni íconos, tampoco en el texto que copies de otro documento. Cómo reemplazarlos sin romper la
    frase: `reglas-ia.md`, sección «Estilo».
 

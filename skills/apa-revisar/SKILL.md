@@ -38,11 +38,14 @@ Termina siempre con código 0 (con `--estricto`, 1 si queda algo). Explica al us
 | Texto de plantilla `[[…]]` | Párrafo guía que no se reemplazó | Escribirlo con el autor o borrar el apartado si su institución no lo pide |
 | Citas sin referencia | `(Autor, año)` sin entrada bajo `# Referencias` | Pregunta de dónde sale; agrega la referencia con `[[verificar]]` |
 | Referencias que no se citan | Entrada de la lista que ningún capítulo cita | Pregunta si se cita o se quita |
+| Formato de citas (sugerencias) | Cita que no sigue la forma de `[citas]` (`&` o `y`, `s.f.` o `s. f.`), `et ál` o `et al` sin punto, `pg.` en lugar de `p.`, falta de espacio tras la coma | Propón la corrección; no cuenta para `--estricto` |
+| Portada: bloques sin `{{CLAVE}}` | Texto fijo en la portada | Confirma que no es un dato personal (esos van en `.env`) |
 | Caracteres a evitar | Rayas (—), guion medio (–) fuera de un rango numérico, flechas (→) o emojis, en los capítulos o en `documento.toml` | Propón el reemplazo de `reglas-ia.md` («Estilo»); si el texto es del autor, aplícalo cuando acepte |
 
-Falsos positivos frecuentes: autores corporativos (`Organización Mundial de la Salud [OMS], 2020`), citas
-secundarias («citado en…»), años con letra (`2020a`) y textos como «Ley 1178 (1990)». Revisa antes de
-afirmar que hay un error.
+`revisar.py` reconoce autores de grupo de varias palabras y sus siglas, `s.f.`/`s. f.` (con letra), «en
+prensa», varios años, años con letra, citas secundarias («como se citó en»: solo cuenta la fuente
+consultada), comunicaciones personales y remisiones (`véase`, `cf.`). Aún puede equivocarse con textos como
+«Ley 1178 (1990)» o un producto seguido de un año. Revisa antes de afirmar que hay un error.
 
 ## 3. Lista antes de entregar
 1. `revisar.py` sin pendientes, citas huérfanas ni caracteres a evitar (salvo falsos positivos confirmados).

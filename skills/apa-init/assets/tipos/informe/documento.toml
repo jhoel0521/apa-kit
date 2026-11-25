@@ -36,3 +36,8 @@ bloques = []
 orden = ["portada", "previos", "indice", "lista_tablas", "lista_figuras"]
 
 [variables]
+
+[citas]
+# Forma de las citas de este documento: apa-escribir escribe así y revisar.py sugiere corregir lo distinto.
+conjuncion = "y"     # dos autores dentro del paréntesis: "y" (Pérez y Gómez, 2020) o "&" (Pérez & Gómez, 2020)
+sin_fecha = "s.f."   # obra sin fecha: "s.f." o "s. f."
