@@ -39,6 +39,20 @@ def correr(cwd, *args):
     return r.returncode, (r.stdout + r.stderr).strip()
 
 
+PORTADA_MINIMA = """bloques = [
+  { texto = "{{TITULO}}", negrita = true },
+  { texto = "{{AUTOR}}" },
+]"""
+
+
+def definir_portada(carpeta, bloques=PORTADA_MINIMA):
+    """Los tipos nuevos traen la portada sin definir (bloques = []): la prueba hace lo que haría la entrevista."""
+    toml = carpeta / "documento.toml"
+    texto = toml.read_text(encoding="utf-8")
+    ok(f"{carpeta.name}: el tipo trae la portada sin definir (bloques = [])", "bloques = []" in texto)
+    toml.write_text(texto.replace("bloques = []", bloques, 1), encoding="utf-8")
+
+
 def listado(base):
     return sorted(str(p.relative_to(base)) for p in base.rglob("*") if "__pycache__" not in p.parts)
 
@@ -119,8 +133,13 @@ def probar_skills():
     carpetas = sorted(p for p in (REPO / "skills").iterdir() if (p / "SKILL.md").exists())
     ok("existen las seis skills", [p.name for p in carpetas] ==
        ["apa-escribir", "apa-generar", "apa-guia", "apa-importar", "apa-init", "apa-revisar"], str([p.name for p in carpetas]))
+    version = (ASSETS / "VERSION").read_text(encoding="utf-8").strip()
     for p in carpetas:
         comprobar_frontmatter(p / "SKILL.md", p.name)
+        ok(f"{p.name}: metadata.version = VERSION ({version})",
+           f'version: "{version}"' in (p / "SKILL.md").read_text(encoding="utf-8"))
+    ok(f"plugin.json: version = VERSION ({version})",
+       f'"version": "{version}"' in (REPO / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
     # Lo que trae una plantilla sale tal cual en el Word del autor: sin rayas, flechas ni emojis.
     sucios = [f"{r.relative_to(REPO)}: {c}" for r in sorted((REPO / "skills" / "apa-init" / "assets" / "tipos").rglob("*"))
               if r.suffix in (".md", ".toml") for c in "—–→" if c in r.read_text(encoding="utf-8")]
@@ -137,6 +156,7 @@ def probar_tipos(tmp):
         ok(f"iniciar.py crea el tipo '{tipo}'", code == 0, sal[-300:])
         if code != 0:
             continue
+        definir_portada(proyecto / tipo)
         code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", tipo)
         ok(f"genera el tipo '{tipo}'", code == 0, sal[-300:])
         docx = proyecto / tipo / "dist" / f"{ {'tesis': 'Tesis', 'libre': 'Documento'}[tipo] }.docx"
@@ -150,6 +170,13 @@ def probar_tipos(tmp):
            bool(cuerpo) and all(t[1] == salta for t in cuerpo), str(t1))
         ref = [t for t in t1 if t[0].startswith("Referencias")]
         ok(f"'{tipo}': Referencias siempre en página nueva", bool(ref) and ref[0][1] is True, str(t1))
+        from docx import Document
+        texto = "\n".join(p.text for p in Document(docx).paragraphs)
+        ok(f"'{tipo}': sin tablas ni figuras no hay listas vacías (#12)",
+           "Lista de Tablas" not in texto and "Lista de Figuras" not in texto
+           and "no se genera la lista de tablas" in sal and "no se genera la lista de figuras" in sal, sal[-300:])
+        ok(f"'{tipo}': el aviso del índice da los atajos correctos (#11)",
+           "Ctrl+E en Word en español" in texto and "Actualizar todo" in texto and "(Ctrl+A, F9)" not in texto)
     ok("iniciar.py no escribió nada dentro de la skill", listado(ASSETS.parent) == antes)
     ok("el motor quedó copiado en .apa/scripts/", (proyecto / ".apa" / "scripts" / "generar_docx.py").exists())
     ok("cada documento trae su .gitignore", (proyecto / "tesis" / ".gitignore").exists())
@@ -175,6 +202,7 @@ def probar_demas_tipos(tmp):
     for tipo, salida in esperado.items():
         code, sal = correr(proyecto, INICIAR, "--tipo", tipo, "--destino", tipo)
         ok(f"iniciar.py crea el tipo '{tipo}'", code == 0, sal[-300:])
+        definir_portada(proyecto / tipo)
         code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", tipo)
         docx = proyecto / tipo / "dist" / f"{salida}.docx"
         if not ok(f"genera el tipo '{tipo}'", code == 0 and docx.exists(), sal[-400:]):
@@ -214,6 +242,7 @@ def probar_tablas_juntas(tmp):
     proyecto = tmp / "tablas"
     proyecto.mkdir()
     correr(proyecto, INICIAR, "--tipo", "libre", "--destino", "doc")
+    definir_portada(proyecto / "doc")
     (proyecto / "doc" / "capitulos" / "01-primera-seccion.md").write_text("\n".join([
         "# Tablas", "", "Tabla: Una tabla {#t1}", "", "| A | B |", "|---|---|", "| 1 | uno<br>dos |", "| 2 | tres |", "",
         "Nota: la nota.", ""]), encoding="utf-8")
@@ -221,6 +250,10 @@ def probar_tablas_juntas(tmp):
     docx = proyecto / "doc" / "dist" / "Documento.docx"
     if not ok("genera un documento con una tabla", code == 0 and docx.exists(), sal[-300:]):
         return
+    parrafos = [p.text for p in Document(docx).paragraphs]
+    ok("con una tabla y sin figuras solo se genera la lista de tablas (#12)",
+       "Lista de Tablas" in parrafos and "Lista de Figuras" not in parrafos
+       and "no se genera la lista de figuras" in sal, str([p for p in parrafos if p.startswith("Lista")]))
     t = Document(docx).tables[0]
     ok("tablas: ninguna fila se parte (cantSplit)",
        all(f._tr.trPr is not None and f._tr.trPr.find(qn("w:cantSplit")) is not None for f in t.rows))
@@ -257,6 +290,8 @@ def probar_paquete(tmp):
     proyecto.mkdir()
     code, sal = correr(proyecto, skill / "assets" / "scripts" / "iniciar.py", "--tipo", "articulo", "--destino", "mi-articulo")
     ok("el paquete único crea un documento", code == 0, sal[-300:])
+    ok("el paquete único trae la guía de portadas", (skill / "references" / "portadas.md").exists())
+    definir_portada(proyecto / "mi-articulo")
     code, sal = correr(proyecto, ".apa/scripts/generar_docx.py")
     ok("el paquete único genera el Word", code == 0 and (proyecto / "mi-articulo" / "dist" / "Articulo.docx").exists(), sal[-300:])
     ok("el paquete único no se modifica al usarlo", listado(skill) == antes)
@@ -289,6 +324,102 @@ def probar_sincronizar(proyecto):
     code, sal = correr(proyecto, INICIAR, "--sincronizar")
     ok("--sincronizar restaura el motor", code == 0 and "estropeado" not in motor.read_text(encoding="utf-8"), sal[-200:])
     ok("--sincronizar no toca los capítulos", huella_carpeta(proyecto / "libre" / "capitulos") == caps)
+
+
+def portada_ejemplo(nombre):
+    """Bloque TOML de un ejemplo de skills/apa-init/references/portadas.md (lo que copia el agente)."""
+    import re
+    texto = (REPO / "skills" / "apa-init" / "references" / "portadas.md").read_text(encoding="utf-8")
+    m = re.search(rf"### {re.escape(nombre)}.*?```toml\n(.*?)```", texto, re.S)
+    return m.group(1).strip() if m else ""
+
+
+def parrafos_portada(docx):
+    """Párrafos de la portada: hasta el primero que empieza página nueva."""
+    from docx import Document
+    salida = []
+    for p in Document(docx).paragraphs:
+        if p.paragraph_format.page_break_before:
+            break
+        salida.append(p)
+    return salida
+
+
+def probar_portada(tmp):
+    """Portada por bloques (#13): no se genera sin definirla; definida, los datos faltantes salen en blanco."""
+    import re
+    proyecto = tmp / "portada"
+    proyecto.mkdir()
+    correr(proyecto, INICIAR, "--tipo", "informe", "--destino", "inf")
+    toml = proyecto / "inf" / "documento.toml"
+    docx = proyecto / "inf" / "dist" / "Informe.docx"
+    original = toml.read_text(encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    ok("portada sin definir: no se genera el Word", code != 0 and "portada sin definir" in sal and not docx.exists(), sal[-300:])
+    toml.write_text(original.replace("bloques = []", 'bloques = [{ texto = "[[Nombre de la carrera]]" }]'), encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    ok("portada con texto de plantilla [[…]]: no se genera el Word", code != 0 and not docx.exists(), sal[-300:])
+    toml.write_text(original.replace("bloques = []", 'bloques = [{ color = "rojo" }]'), encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    ok("portada con un bloque desconocido: error claro", code != 0 and "no reconocido" in sal and not docx.exists(), sal[-300:])
+
+    ejemplo = portada_ejemplo("Estándar universidades privadas de Bolivia")
+    ok("portadas.md trae el ejemplo bolivia-privada", "Arial Black" in ejemplo, ejemplo[:200])
+    toml.write_text(re.sub(r"\[portada\].*?(?=\n\[preliminares\])", lambda _: ejemplo, original, flags=re.S),
+                    encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    if not ok("el ejemplo bolivia-privada genera el Word", code == 0 and docx.exists(), sal[-400:]):
+        return
+    portada = parrafos_portada(docx)
+    runs = [r for p in portada for r in p.runs if r.text.strip()]
+    ok("bolivia-privada: la portada usa Arial Black", runs and all(r.font.name == "Arial Black" for r in runs),
+       str([(r.text, r.font.name) for r in runs]))
+    ok("bolivia-privada: el título sale de [documento].titulo", any("Título del informe" in p.text for p in portada))
+    ok("portada definida sin .env: los datos faltantes salen en blanco, no como [[CLAVE]]",
+       not any("ACTIVIDAD" in p.text or "DOCENTE" in p.text for p in portada) and "salen en blanco" in sal, sal[-400:])
+    (proyecto / "inf" / ".env").write_text("AUTOR=Ana Pérez\nCARRERA=Carrera de ejemplo\n", encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    portada = parrafos_portada(docx)
+    ok("portada: usa los datos de .env", code == 0 and any(p.text == "Ana Pérez" for p in portada), sal[-300:])
+    runs = [r for p in portada for r in p.runs if r.text.strip()]
+    ok("bolivia-privada: tamaños 20, 14 y 12", {r.font.size.pt for r in runs if r.font.size} == {20.0, 14.0, 12.0},
+       str({r.font.size.pt for r in runs if r.font.size}))
+
+
+def probar_compatibilidad_02(tmp):
+    """Un documento 0.2 (portada con lineas, sin bloques) se genera como antes y --sincronizar no lo toca."""
+    proyecto = tmp / "v02"
+    proyecto.mkdir()
+    correr(proyecto, INICIAR, "--tipo", "libre", "--destino", "doc")
+    toml = proyecto / "doc" / "documento.toml"
+    texto = toml.read_text(encoding="utf-8").replace('subtitulo = ""', 'subtitulo = "Subtítulo antiguo"')
+    texto = texto.replace("bloques = []", 'lineas = [\n  "{{AUTOR}}",\n  "Línea antigua",\n]')
+    toml.write_text(texto, encoding="utf-8")
+    antes = toml.read_bytes()
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "doc")
+    docx = proyecto / "doc" / "dist" / "Documento.docx"
+    if not ok("documento 0.2 (lineas, sin bloques): se genera", code == 0 and docx.exists(), sal[-300:]):
+        return
+    textos = [p.text for p in parrafos_portada(docx) if p.text.strip()]
+    ok("documento 0.2: la portada sale como antes (título, subtítulo, líneas)",
+       textos == ["Título del documento", "Subtítulo antiguo", "AUTOR", "Línea antigua"], str(textos))
+    code, sal = correr(proyecto, INICIAR, "--sincronizar")
+    ok("documento 0.2: --sincronizar no modifica documento.toml", code == 0 and toml.read_bytes() == antes, sal[-200:])
+
+
+def probar_entorno(proyecto):
+    """Un .apa/.venv/ a medio crear (sin python-docx) no atrapa a los scripts (#9)."""
+    venv = proyecto / ".apa" / ".venv"
+    for py in ("Scripts/python.exe", "bin/python3"):
+        (venv / py).parent.mkdir(parents=True, exist_ok=True)
+        (venv / py).write_text("", encoding="utf-8")
+    consulta = "import sys; sys.path.insert(0, '.apa/scripts'); import _entorno; print(_entorno.venv_listo())"
+    code, sal = correr(proyecto, "-c", consulta)
+    ok("_entorno: un .venv sin python-docx no se usa", code == 0 and sal.strip().endswith("False"), sal[-200:])
+    (venv / "lib" / "python3.12" / "site-packages" / "docx").mkdir(parents=True)
+    code, sal = correr(proyecto, "-c", consulta)
+    ok("_entorno: un .venv con python-docx sí se usa", code == 0 and sal.strip().endswith("True"), sal[-200:])
+    shutil.rmtree(venv)
 
 
 def probar_revisar(proyecto):
@@ -333,6 +464,103 @@ def probar_revisar(proyecto):
     ok("revisar.py --estricto termina con código 1 si queda algo", code == 1)
 
 
+def probar_revisar_citas(proyecto):
+    """Citas APA 7 bien escritas no dan avisos falsos (#8, #10). Autores y obras inventados."""
+    caps = proyecto / "libre" / "capitulos"
+    capitulo = "\n".join([
+        "# Citas",
+        "",
+        "Así lo plantea Alvarado (2021).",
+        "Uno (Benítez y Cuéllar, 2019). Otro (Dorado & Esquivel, 2018, p. 14).",
+        "Fajardo et al. (2017) señalan algo (Ibarra et ál., 2016) y lo repiten (Ibarra et al, 2016).",
+        "Un grupo (Equipo Alfa Beta, 2024). Equipo Alfa Beta (2024) añade algo.",
+        "Según el Consejo Nacional Ficticio (2020) hay datos.",
+        "Primero (Organización Ficticia de Salud [OFS], 2020). Luego (OFS, 2020, p. 3).",
+        "La Agencia Ejemplo de Datos (AED, 2019) informa. Después AED (2019) agrega.",
+        "Aduanas (Dirección Ficticia de Aduanas, 2021) y su sigla (DFA, 2021).",
+        "Sin fecha (Marín, s. f.), con letra (Navas, s.f.-a) y (Navas, s. f.-b).",
+        "Ortiz (s. f.) sostiene algo. En prensa (Paredes, en prensa).",
+        "Varios años (Quiroga, 2020, 2022) y letras (Rivas, 2015a, 2015b). Mal (Salinas, 2014c).",
+        "Secundaria (Tapia, 2018, como se citó en Urquiza, 2019). Valdez (como se citó en Wilde, 2021) plantea.",
+        "Peal (2018, como se citó en Tsai, 2017) lo dijo.",
+        "Varias (Yáñez, 2012; véase también Zárate, 2013; cf. Arce, 2011).",
+        "Iniciales (B. Cortez, 2010) y (L. Cortez, 2011). Compuesto (Lerma Duarte, 2011, pp. 25-64).",
+        "Sin autor (*Economía regional*, 2008) y (Economía regional…, 2008).",
+        "Personal (E. Mamani, comunicación personal, 8 de febrero de 2021). Herramienta (versión 2020).",
+        "Sin referencia (Nieto, 2009). Mal escrita (Zuleta,2011,pg. 13).",
+        ""])
+    referencias = "\n".join([
+        "# Referencias {.sin-numero}",
+        "",
+        "Alvarado, R. (2021). *Título uno*. Editorial Ejemplo.",
+        "Benítez, A., y Cuéllar, M. (2019). *Título*. Editorial Ejemplo.",
+        "Dorado, L., & Esquivel, T. (2018). *Título*. Editorial Ejemplo.",
+        "Fajardo, P., Gil, R., y Hurtado, S. (2017). *Título*. Editorial Ejemplo.",
+        "Ibarra, C., Jara, D., y Luna, E. (2016). *Título*. Editorial Ejemplo.",
+        "Equipo Alfa Beta. (2024, 23 de octubre). *Título*. Sitio Ejemplo.",
+        "Consejo Nacional Ficticio. (2020). *Título*. Editorial Ejemplo.",
+        "Organización Ficticia de Salud. (2020). *Título*. OFS.",
+        "Agencia Ejemplo de Datos. (2019). *Título*. Editorial Ejemplo.",
+        "Dirección Ficticia de Aduanas (DFA). (2021, 13 de abril). *Título*. Sitio Ejemplo.",
+        "Marín, J. (s.f.). *Título*. Editorial Ejemplo.",
+        "Navas, O. (s. f.-a). *Título uno*. Editorial Ejemplo.",
+        "Navas, O. (s. f.-b). *Título dos*. Editorial Ejemplo.",
+        "Ortiz, Q. (s. f.). *Título*. Editorial Ejemplo.",
+        "Paredes, V. (en prensa). *Título*. Revista Ejemplo.",
+        "Quiroga, W. (2020). *Título uno*. Editorial Ejemplo.",
+        "Quiroga, W. (2022). *Título dos*. Editorial Ejemplo.",
+        "Rivas, X. (2015a). *Título uno*. Editorial Ejemplo.",
+        "Rivas, X. (2015b). *Título dos*. Editorial Ejemplo.",
+        "Salinas, Y. (2014a). *Título uno*. Editorial Ejemplo.",
+        "Salinas, Y. (2014b). *Título dos*. Editorial Ejemplo.",
+        "Urquiza, Z. (2019). *Título*. Editorial Ejemplo.",
+        "Wilde, A. (2021). *Título*. Editorial Ejemplo.",
+        "Tsai, K. (2017). *Título*. Editorial Ejemplo.",
+        "Yáñez, B. (2012). *Título*. Editorial Ejemplo.",
+        "Zárate, C. (2013). *Título*. Editorial Ejemplo.",
+        "Arce, D. (2011). *Título*. Editorial Ejemplo.",
+        "Cortez, B. (2010). *Título uno*. Editorial Ejemplo.",
+        "Cortez, L. (2011). *Título dos*. Editorial Ejemplo.",
+        "Lerma Duarte, H. D. (2011). *Título*. Editorial Ejemplo.",
+        "*Economía regional del altiplano*. (2008). Editorial Ejemplo.",
+        "Zuleta, E. (2011). *Título*. Editorial Ejemplo.",
+        "Olmos, F. (2005). *Título*. Editorial Ejemplo.",
+        ""])
+    (caps / "01-primera-seccion.md").write_text(capitulo, encoding="utf-8")
+    (caps / "90-referencias.md").write_text(referencias, encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre")
+    sin_ref = sal.split("== Citas sin referencia")[1].split("== Referencias que no se citan")[0]
+    sin_cita = sal.split("== Referencias que no se citan")[1].split("== Caracteres")[0]
+    sugerencias = sal.split("== Formato de citas")[1].split("Resumen:")[0]
+    ok("citas: solo 2 citas sin referencia (Nieto 2009, Salinas 2014c)",
+       sin_ref.startswith(": 2") and "Nieto (2009)" in sin_ref and "Salinas (2014c)" in sin_ref, sin_ref)
+    ok("citas: solo 3 referencias sin cita (Olmos, Salinas 2014a y 2014b)",
+       sin_cita.startswith(": 3") and "Olmos (2005)" in sin_cita and "Salinas (2014a)" in sin_cita
+       and "Salinas (2014b)" in sin_cita, sin_cita)
+    for falso in ("Team", "Beta (", "Según", "Tapia", "Valdez", "Peal", "Mamani", "OFS (", "AED (", "Square"):
+        ok(f"citas: no aparece el falso aviso «{falso}»", falso not in sin_ref + sin_cita, sin_ref + sin_cita)
+    ok("citas: sugiere «y» en lugar de «&» (la forma declarada)", "Dorado & Esquivel" in sugerencias, sugerencias)
+    ok("citas: sugiere «et al.» con punto y sin tilde", "Ibarra et ál." in sugerencias and "Ibarra et al," in sugerencias,
+       sugerencias)
+    ok("citas: sugiere «s.f.» (la forma declarada)", "Marín, s. f." in sugerencias, sugerencias)
+    ok("citas: sugiere «p.» y el espacio tras la coma", "pg." in sugerencias and "espacio" in sugerencias, sugerencias)
+    toml = proyecto / "libre" / "documento.toml"
+    texto = toml.read_text(encoding="utf-8")
+    toml.write_text(texto.replace('conjuncion = "y"', 'conjuncion = "&"').replace('sin_fecha = "s.f."', 'sin_fecha = "s. f."'),
+                    encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre")
+    sugerencias = sal.split("== Formato de citas")[1].split("Resumen:")[0]
+    ok("citas: con [citas] «&» y «s. f.», cambian las sugerencias",
+       "Benítez y Cuéllar" in sugerencias and "Dorado & Esquivel" not in sugerencias and "Navas, s.f.-a" in sugerencias,
+       sugerencias)
+    toml.write_text(texto, encoding="utf-8")
+    (caps / "01-primera-seccion.md").write_text("# Uno\n\nTexto (Alvarado & Benítez, 2021).\n", encoding="utf-8")
+    (caps / "90-referencias.md").write_text("# Referencias {.sin-numero}\n\nAlvarado, R., & Benítez, A. (2021). *T*.\n",
+                                            encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre", "--estricto")
+    ok("citas: las sugerencias de formato no cuentan para --estricto", code == 0 and "Dorado" not in sal, sal[-300:])
+
+
 def probar_migrar(tmp):
     """Un documento del diseño antiguo se genera igual que antes y sigue protegido contra regeneración."""
     proyecto = tmp / "antiguo"
@@ -372,10 +600,14 @@ def main():
         proyecto = probar_tipos(tmp)
         probar_demas_tipos(tmp)
         probar_tablas_juntas(tmp)
+        probar_portada(tmp)
+        probar_compatibilidad_02(tmp)
         probar_paquete(tmp)
         probar_importar(tmp, proyecto)
         probar_sincronizar(proyecto)
+        probar_entorno(proyecto)
         probar_revisar(proyecto)
+        probar_revisar_citas(proyecto)
         probar_migrar(tmp)
     print("\nRESULTADO:", "todo bien" if not fallos else f"{len(fallos)} fallo(s): " + "; ".join(fallos))
     sys.exit(1 if fallos else 0)

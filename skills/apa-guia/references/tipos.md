@@ -21,4 +21,7 @@ y sus capítulos; ninguno incluye texto de una carrera concreta, solo marcas `[[
 4. Cualquier tipo se ajusta en `documento.toml`: `numerar_titulos`, `salto_nivel1`, `encabezado`,
    etiquetas, fuente… (ver `sintaxis.md`). Elegir un tipo no encierra al usuario.
 
+Ningún tipo trae la portada hecha: todos llegan con `[portada].bloques = []` y una sugerencia en un comentario.
+La portada se define en la entrevista de apa-init, y hasta entonces el Word no se genera.
+
 Para agregar un tipo nuevo, ver `CONTRIBUTING.md` del repositorio.

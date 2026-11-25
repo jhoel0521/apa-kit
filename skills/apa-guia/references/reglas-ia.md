@@ -23,7 +23,9 @@ Las decisiones de este archivo son humanas: no las cambies por iniciativa propia
 ## Estilo
 - **Puntuación normal, sin caracteres que delatan a la IA.** En el texto del documento no uses rayas
   (—), guion medio (–), flechas decorativas (→, ⇒), emojis ni íconos. Escribe con comas, puntos, dos
-  puntos, paréntesis y guion simple (-).
+  puntos, paréntesis y guion simple (-). Es una decisión de estilo del kit, no una norma APA (APA admite
+  la raya).
+- **Citas en la forma de `[citas]`** de `documento.toml` (conjunción entre dos autores y «sin fecha»).
 - **Vale también para lo que copias o reutilizas.** Si armas un capítulo con texto que ya existe (un
   informe anterior, un README, documentación del proyecto), limpia esos caracteres al pasarlo, igual
   que si lo redactaras. Revisa también `documento.toml`: la portada y el título salen en el Word.

@@ -25,14 +25,23 @@ def python_del_venv():
     return None
 
 
+def venv_listo():
+    """True si el .venv tiene su Python y python-docx instalado. Un .venv a medio crear (por ejemplo, si
+    faltaba python3-venv en Debian/Ubuntu) no cuenta: relanzar ahí dejaría al usuario atrapado sin librerías."""
+    if python_del_venv() is None:
+        return False
+    paquetes = [VENV / "Lib" / "site-packages"] + sorted(VENV.glob("lib/python*/site-packages"))
+    return any((p / "docx").is_dir() for p in paquetes)
+
+
 def dentro_del_venv():
     return Path(sys.prefix).resolve() == VENV.resolve()
 
 
 def relanzar():
-    py = python_del_venv()
-    if py is None or dentro_del_venv() or os.environ.get("APA_SIN_VENV"):
+    if dentro_del_venv() or os.environ.get("APA_SIN_VENV") or not venv_listo():
         return
+    py = python_del_venv()
     sys.exit(subprocess.run([str(py), *sys.argv]).returncode)
 
 

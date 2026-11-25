@@ -219,7 +219,9 @@ def _plano(txt):
 
 # ================================================================ numeración y referencias
 def numerar(secciones, cfg):
-    """Asigna números a títulos, tablas y figuras en el orden de aparición y registra las claves."""
+    """Asigna números a títulos, tablas y figuras en el orden de aparición y registra las claves.
+
+    Devuelve (claves, tablas, figuras): las cuentas deciden si se generan las listas de tablas y figuras."""
     claves, cap, sub = {}, 0, [0, 0, 0]
     tablas = figuras = 0
     numerar_titulos = cfg.get("numerar_titulos", False)   # APA 7 no numera los títulos
@@ -270,7 +272,7 @@ def numerar(secciones, cfg):
                 figuras += 1
                 registrar("figura", b["at"]["id"], f"{cfg.get('etiqueta_figura', 'Figura')} {figuras}",
                           b["origen"])
-    return claves
+    return claves, tablas, figuras
 
 
 class Sustituto:
@@ -278,15 +280,16 @@ class Sustituto:
 
     def __init__(self, variables, claves):
         self.variables, self.claves = variables, claves
-        self.faltan, self.sin_resolver = set(), set()
+        self.faltan, self.en_blanco, self.sin_resolver = set(), set(), set()
 
-    def __call__(self, txt):
+    def __call__(self, txt, vacio=False):
+        """vacio=True (bloques de la portada): una variable sin valor sale en blanco, no como [[CLAVE]]."""
         def var(m):
             v = self.variables.get(m.group(1))
             if v:
                 return v
-            self.faltan.add(m.group(1))
-            return f"[[{m.group(1)}]]"
+            (self.en_blanco if vacio else self.faltan).add(m.group(1))
+            return "" if vacio else f"[[{m.group(1)}]]"
 
         def ref(m):
             v = self.claves.get((m.group(1), m.group(2)))
@@ -339,10 +342,48 @@ def renderizar(doc, bloques, sub, cfg):
             doc.figura(b["ruta"], sub(b["titulo"]), ancho, sub(b["nota"]) if b["nota"] else None)
 
 
+def portada_definida(p):
+    """None: portada sin bloques (documentos 0.2, se genera como antes). False: bloques vacíos o con texto de
+    plantilla [[…]], es decir, falta la entrevista de portada. True: definida."""
+    if "bloques" not in p:
+        return None
+    bloques = p["bloques"]
+    if not isinstance(bloques, list) or not bloques:
+        return False
+    return not any(isinstance(b, dict) and RE_PENDIENTE.search(str(b.get("texto", ""))) for b in bloques)
+
+
+def portada_bloques(doc, p, sub):
+    """Portada por bloques: texto (con fuente, tamano y negrita opcionales), logo o espacio, en orden."""
+    for i, b in enumerate(p["bloques"], 1):
+        if not isinstance(b, dict):
+            errores.append(f"documento.toml: el bloque {i} de [portada] no es una tabla {{ … }}")
+        elif "texto" in b:
+            doc.linea_portada(sub(str(b["texto"]), vacio=True), b.get("fuente"), b.get("tamano"),
+                              bool(b.get("negrita", False)))
+        elif "logo" in b:
+            ruta = DOCS / b["logo"]
+            if ruta.exists():
+                doc.imagen(ruta, float(b.get("ancho_cm", 4)))
+            else:
+                avisos.append(f"documento.toml: no existe el logo {b['logo']}; la portada sale sin logo")
+        elif "espacio" in b:
+            for _ in range(int(b["espacio"])):
+                doc.vacio()
+        else:
+            errores.append(f"documento.toml: bloque {i} de [portada] no reconocido: {b} "
+                           "(usa texto, logo o espacio)")
+
+
 def portada(doc, cfg, sub):
     p = cfg.get("portada", {})
     for _ in range(int(p.get("espacios_arriba", 2))):
         doc.vacio()
+    if portada_definida(p):
+        portada_bloques(doc, p, sub)
+        nota_autor(doc, p, sub)
+        doc.salto()
+        return
     logo = cfg.get("logo")
     if logo:
         ruta = DOCS / logo
@@ -358,13 +399,17 @@ def portada(doc, cfg, sub):
     doc.vacio()
     for ln in p.get("lineas", []):
         doc.parrafo(sub(ln), "Normal", "centro")
+    nota_autor(doc, p, sub)
+    doc.salto()
+
+
+def nota_autor(doc, p, sub):
     if p.get("nota_autor"):   # trabajos profesionales APA 7: «Nota del autor» al pie de la portada
         doc.vacio()
         for r in doc.parrafo(sub(p.get("etiqueta_nota_autor", "Nota del autor")), "Normal", "centro").runs:
             r.bold = True
         for ln in p["nota_autor"]:
             doc.parrafo(sub(ln))
-    doc.salto()
 
 
 def titulo_cuerpo(doc, cfg, sub):
@@ -434,13 +479,19 @@ def main():
 
     env = cargar_env(DOCS / ".env")
     if not env:
-        avisos.append("no hay .env: la portada sale con [[marcadores]] (copia .env.example)")
+        avisos.append("no hay .env: faltan los datos personales (copia .env.example a .env y complétalo)")
     previos, caps = archivos_md()
     if not caps:
         sys.exit(f"No hay capítulos en {CAPITULOS}")
     secciones = [(True, parsear(f)) for f in previos] + [(False, parsear(f)) for f in caps]
-    claves = numerar(secciones, dcfg)
-    sub = Sustituto({**cfg.get("variables", {}), **env}, claves)
+    claves, n_tablas, n_figuras = numerar(secciones, dcfg)
+    automaticas = {"TITULO": dcfg.get("titulo", ""), "SUBTITULO": dcfg.get("subtitulo", "")}
+    sub = Sustituto({**automaticas, **cfg.get("variables", {}), **env}, claves)
+    orden = cfg.get("preliminares", {}).get("orden", ["portada", "previos", "indice", "lista_tablas", "lista_figuras"])
+    if "portada" in orden and portada_definida(cfg.get("portada", {})) is False:
+        print("ERROR  portada sin definir: [portada].bloques de documento.toml está vacía o tiene texto de plantilla [[…]].")
+        print("       Haz con el autor la entrevista de portada de apa-init (qué elementos lleva y en qué orden).")
+        sys.exit("No se generó el documento: falta definir la portada.")
 
     doc = DocumentoAPA(dcfg.get("fuente", "Times New Roman"), int(dcfg.get("tamano", 12)),
                        dcfg.get("idioma", "es"), dcfg.get("papel", "carta"), dcfg.get("justificar", False),
@@ -449,8 +500,7 @@ def main():
                        encabezado=sub(dcfg["encabezado"]) if dcfg.get("encabezado") else None)
     doc.tabla_junta = bool(dcfg.get("tablas_juntas", True))
     portada_cfg = {**dcfg, "portada": cfg.get("portada", {})}
-    for parte in cfg.get("preliminares", {}).get("orden", ["portada", "previos", "indice",
-                                                            "lista_tablas", "lista_figuras"]):
+    for parte in orden:
         if parte == "portada":
             portada(doc, portada_cfg, sub)
         elif parte == "previos":
@@ -460,10 +510,16 @@ def main():
             titulo_cuerpo(doc, dcfg, sub)
         elif parte == "indice":
             doc.indice(int(dcfg.get("niveles_indice", 3)))
-        elif parte == "lista_tablas":
-            doc.lista_tablas()
+        elif parte == "lista_tablas":   # #12: sin tablas no hay lista (APA y las guías la piden solo si las hay)
+            if n_tablas:
+                doc.lista_tablas()
+            else:
+                avisos.append("sin tablas con título: no se genera la lista de tablas")
         elif parte == "lista_figuras":
-            doc.lista_figuras()
+            if n_figuras:
+                doc.lista_figuras()
+            else:
+                avisos.append("sin figuras: no se genera la lista de figuras")
         else:
             errores.append(f"documento.toml: parte de preliminares desconocida '{parte}'")
     for _, bloques in secciones[len(previos):]:
@@ -471,6 +527,10 @@ def main():
 
     if sub.faltan:
         avisos.append("variables sin valor en .env: " + ", ".join(sorted(sub.faltan)))
+    if sub.en_blanco:
+        avisos.append("datos de la portada sin valor (salen en blanco): " + ", ".join(sorted(sub.en_blanco))
+                      + ". Complétalos en .env: si los llenas a mano en el Word, la protección del .docx editado "
+                      "impedirá regenerarlo encima")
     for r in sorted(sub.sin_resolver):
         errores.append(f"referencia sin destino: {r} (¿falta {{#clave}} en el título, 'Tabla:' o figura?)")
     for a in avisos:

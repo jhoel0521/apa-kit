@@ -25,10 +25,11 @@ etiqueta_figura = "Figura"
 [portada]
 # Portada profesional APA 7: título en negrita; debajo autores y afiliaciones; al pie, la nota del autor.
 espacios_arriba = 3
-lineas = [
-  "{{AUTOR}}",
-  "{{AFILIACION}}",
-]
+# Vacía hasta la entrevista de portada de apa-init: el Word NO se genera con la portada sin definir.
+# Sugerencia de este tipo, en orden: título en negrita, autor y afiliación (la nota del autor va aparte, en nota_autor).
+# Cada bloque es { texto = "..." } (con fuente, tamano y negrita opcionales), { logo = "ruta" } o
+# { espacio = 1 }. Ejemplos: skills/apa-init/references/portadas.md. Datos personales solo como {{CLAVE}}.
+bloques = []
 nota_autor = [
   "{{AUTOR}} https://orcid.org/{{ORCID}}",
   "[[Agradecimientos, financiación y conflictos de interés, si los hay.]]",
@@ -40,3 +41,8 @@ nota_autor = [
 orden = ["portada", "previos", "titulo_cuerpo"]
 
 [variables]
+
+[citas]
+# Forma de las citas de este documento: apa-escribir escribe así y revisar.py sugiere corregir lo distinto.
+conjuncion = "y"     # dos autores dentro del paréntesis: "y" (Pérez y Gómez, 2020) o "&" (Pérez & Gómez, 2020)
+sin_fecha = "s.f."   # obra sin fecha: "s.f." o "s. f."

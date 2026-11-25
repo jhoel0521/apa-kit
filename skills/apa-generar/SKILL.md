@@ -4,7 +4,7 @@ description: Genera el documento Word (.docx) con formato APA 7 a partir de los 
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md. Requiere Python 3.9+ y la carpeta .apa/ creada por apa-init.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   kit: apa-kit
   profile: core
 ---
@@ -39,11 +39,17 @@ una referencia `@tabla:`/`@figura:`/`@sec:` no tiene destino o hay claves repeti
 tal cual y corrige el `.md` indicado (archivo:línea). Los avisos (variables sin valor, tabla sin título)
 no bloquean, pero cuéntaselos al usuario.
 
+Si responde `portada sin definir`, falta la entrevista de portada: haz el paso 3.1 de **apa-init** con el autor
+(no inventes la portada). Si avisa `datos de la portada sin valor (salen en blanco)`, pide esos datos para
+`.env` y vuelve a generar: llenarlos a mano en el Word bloquea las siguientes generaciones (ver abajo).
+
 Si responde `ALTO: … cambió después de generarse`, el usuario editó el Word a mano. **No uses `--forzar`.**
 Explícale: renombrar su Word (p. ej. `Tesis_entregado_2026-11.docx`) o cambiar `salida` en `documento.toml`.
 
 ## 4. Entregar
 Dile dónde quedó el archivo (`<documento>/dist/`) y cómo actualizar índices al abrirlo:
-- **Word** (Windows o Mac): responder **Sí** a «¿actualizar campos?» (o Ctrl/⌘ + A y F9).
-- **LibreOffice:** *Herramientas → Actualizar → Todos los índices y tablas*.
+- **Word:** responder **Sí** a «¿actualizar campos?» al abrir. Si no lo pregunta, seleccionar todo y pulsar
+  F9: en Word en español es **Ctrl + E** y luego F9 (Ctrl + A *abre* un archivo); en Word en inglés,
+  Ctrl + A y F9; en Mac, ⌘ + A y F9.
+- **LibreOffice:** *Herramientas → Actualizar → Actualizar todo* (F9 no actualiza los índices).
 Para entregar, que copie el archivo de `dist/` a otro lado: `dist/` no se versiona.

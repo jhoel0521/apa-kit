@@ -27,13 +27,11 @@ meta_palabras = 20000                    # para --estado
 
 [portada]
 espacios_arriba = 1
-lineas = [
-  "{{AUTOR}}",
-  "{{UNIVERSIDAD}}",
-  "{{FACULTAD}}, {{CARRERA}}",
-  "Tutor: {{TUTOR}}",
-  "{{CIUDAD}}, {{FECHA}}",
-]
+# Vacía hasta la entrevista de portada de apa-init: el Word NO se genera con la portada sin definir.
+# Sugerencia de este tipo, en orden: logo, título, grado al que se opta, autor, universidad, facultad y carrera, tutor, ciudad y fecha.
+# Cada bloque es { texto = "..." } (con fuente, tamano y negrita opcionales), { logo = "ruta" } o
+# { espacio = 1 }. Ejemplos: skills/apa-init/references/portadas.md. Datos personales solo como {{CLAVE}}.
+bloques = []
 
 [preliminares]
 # portada · previos (capitulos/00-*.md) · indice · lista_tablas · lista_figuras
@@ -43,3 +41,8 @@ orden = ["portada", "previos", "indice", "lista_tablas", "lista_figuras"]
 # Valores NO personales reutilizables en los capítulos como {{CLAVE}} (el .env tiene prioridad).
 
 NOMBRE_SISTEMA = "[[Nombre del sistema]]"
+
+[citas]
+# Forma de las citas de este documento: apa-escribir escribe así y revisar.py sugiere corregir lo distinto.
+conjuncion = "y"     # dos autores dentro del paréntesis: "y" (Pérez y Gómez, 2020) o "&" (Pérez & Gómez, 2020)
+sin_fecha = "s.f."   # obra sin fecha: "s.f." o "s. f."

@@ -14,6 +14,11 @@ from docx.shared import Cm, Pt, RGBColor
 PAPELES = {"carta": (21.59, 27.94), "a4": (21.0, 29.7), "oficio": (21.59, 35.56)}
 MARGEN = 2.54  # cm (1 pulgada, APA 7)
 SANGRIA = 1.27  # cm (0,5 pulgadas, APA 7)
+# Texto visible en el índice y las listas hasta que se actualizan los campos (#11: en Word en español,
+# seleccionar todo es Ctrl+E; Ctrl+A abre un archivo. En LibreOffice, F9 no actualiza los índices).
+AVISO_CAMPOS = ("Actualice los campos para generar {que}: en Word, acepte «¿actualizar campos?» al abrir, "
+                "o seleccione todo y pulse F9 (Ctrl+E en Word en español, Ctrl+A en inglés, Cmd+A en Mac); "
+                "en LibreOffice, Herramientas, Actualizar, Actualizar todo.")
 
 # **negrita** · [texto](url) · [[pendiente]] · `código` · *cursiva*
 TOKEN = re.compile(r"(\*\*[^*]+\*\*|\[[^\[\]]+\]\([^)]+\)|\[\[[^\]]+\]\]|`[^`]+`|\*[^*\s][^*]*\*)")
@@ -162,7 +167,8 @@ class DocumentoAPA:
         else:
             hdr.alignment = WD_ALIGN_PARAGRAPH.RIGHT
         self.campo(hdr, "PAGE", "1")
-        # Word pregunta al abrir si actualiza índices y numeración (equivale a Ctrl+A, F9).
+        # Word pregunta al abrir si actualiza índices y numeración (equivale a seleccionar todo y F9:
+        # Ctrl+E en Word en español, Ctrl+A en inglés).
         upd = OxmlElement("w:updateFields")
         upd.set(qn("w:val"), "true")
         self.doc.settings.element.append(upd)
@@ -230,6 +236,30 @@ class DocumentoAPA:
 
     def vacio(self):
         return self._par()
+
+    def linea_portada(self, txt, fuente=None, tamano=None, negrita=False):
+        """Una línea centrada de la portada por bloques, con su propia fuente y tamaño.
+
+        Interlineado sencillo y sin sangría: con bloques de 20 y 14 pt, el doble espacio partiría la portada
+        en dos páginas."""
+        p = self._par()
+        pf = p.paragraph_format
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pf.first_line_indent = Cm(0)
+        pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        pf.space_before = pf.space_after = Pt(0)
+        self.texto(p, txt)
+        for r in p.runs:
+            if negrita:
+                r.bold = True
+            if tamano:
+                r.font.size = Pt(float(tamano))
+            if fuente:
+                r.font.name = fuente
+                rf = r._r.get_or_add_rPr().find(qn("w:rFonts"))
+                for k in ("w:ascii", "w:hAnsi", "w:cs", "w:eastAsia"):
+                    rf.set(qn(k), fuente)
+        return p
 
     def titulo(self, nivel, txt, en_indice=True, salto=None):
         """salto=True fuerza página nueva (nivel 1); None sigue salto_nivel1; False nunca."""
@@ -367,12 +397,12 @@ class DocumentoAPA:
 
     def indice(self, niveles=3):
         self._lista_campo("Índice de Contenidos", f'TOC \\o "1-{niveles}" \\h \\z \\u',
-                          "Actualice los campos (Ctrl+A, F9) para generar el índice.")
+                          AVISO_CAMPOS.format(que="el índice"))
 
     def _lista_de(self, tipo):
         n = self.etiquetas[tipo]
         self._lista_campo(f"Lista de {n}s", f'TOC \\h \\z \\c "{n}"',
-                          f"Actualice los campos (Ctrl+A, F9) para generar la lista de {n.lower()}s.")
+                          AVISO_CAMPOS.format(que=f"la lista de {n.lower()}s"))
 
     def lista_tablas(self):
         self._lista_de("Tabla")

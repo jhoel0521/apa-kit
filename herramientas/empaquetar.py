@@ -51,7 +51,7 @@ Elige el flujo según lo que pida el usuario y **lee solo ese archivo** (cargar 
 | Reglas APA 7, sintaxis, conducta del agente, tipos de documento | `flujos/apa-guia.md` y `references/` |
 
 Dentro de los flujos, las referencias a `skills/apa-guia/SKILL.md` significan `flujos/apa-guia.md`, y las de
-`skills/apa-guia/references/…` significan `references/…`. Las reglas mínimas son siempre las mismas:
+`skills/apa-guia/references/…` y `skills/apa-init/references/…` significan `references/…`. Las reglas mínimas son siempre las mismas:
 no inventar datos ni referencias, editar solo los `.md`, `recursos/` y `documento.toml`, datos personales solo
 en `.env`, y no hacer commit ni push sin que el usuario lo pida.
 """
@@ -78,11 +78,14 @@ def armar_paquete_unico(tmp):
     raiz = tmp / "apa-kit"
     shutil.copytree(SKILLS / "apa-init" / "assets", raiz / "assets", ignore=shutil.ignore_patterns(*EXCLUIR))
     shutil.copytree(SKILLS / "apa-guia" / "references", raiz / "references")
+    for ref in sorted((SKILLS / "apa-init" / "references").glob("*.md")):  # portadas.md (entrevista de portada)
+        shutil.copy2(ref, raiz / "references" / ref.name)
     (raiz / "flujos").mkdir()
     for nombre in FLUJOS:
         cuerpo = sin_frontmatter((SKILLS / nombre / "SKILL.md").read_text(encoding="utf-8"))
         nota = ("> En el paquete único: `ASSETS` es `../assets/` desde este archivo; `skills/apa-guia/SKILL.md` es "
-                "`flujos/apa-guia.md` y `skills/apa-guia/references/` es `references/`.\n\n")
+                "`flujos/apa-guia.md`; `skills/apa-guia/references/` y `skills/apa-init/references/` son "
+                "`references/`.\n\n")
         (raiz / "flujos" / f"{nombre}.md").write_text(nota + cuerpo, encoding="utf-8")
     (raiz / "SKILL.md").write_text(SKILL_UNICA.format(version=VERSION), encoding="utf-8")
     return raiz

@@ -42,7 +42,9 @@ Ejemplo completo de todos los elementos: `ejemplo-sintaxis.md` (en esta misma ca
 | `etiqueta_tabla` / `etiqueta_figura` | «Tabla»/«Figura», o «Cuadro»/«Gráfico» si la facultad lo pide |
 | `fuente`, `tamano`, `papel`, `justificar` | Tipografía y página (APA 7 admite Times New Roman 12, Calibri 11, Arial 11…) |
 | `tablas_juntas` | `true` (por defecto): las filas no se parten y cada tabla va atada a su título y a su nota. Si cabe en una página, Word la mueve entera a la siguiente; si es más alta que una página, la parte y repite el encabezado. `false`: las filas fluyen libres |
-| `[preliminares].orden` | Orden de portada, previos, índice y listas |
+| `[portada].bloques` | La portada, en orden: `{ texto = "{{TITULO}}", fuente = "Arial", tamano = 14, negrita = true }`, `{ logo = "recursos/logos/logo.png", ancho_cm = 5 }` o `{ espacio = 1 }`. Vacía (`[]`) o con texto `[[…]]`, el Word no se genera. Un dato sin valor en `.env` sale en blanco. `{{TITULO}}` y `{{SUBTITULO}}` salen de `[documento]`. Ejemplos y entrevista: `references/portadas.md` de apa-init. Sin `bloques` (documentos anteriores a la 0.3.0) se usan `logo`, `titulo`, `subtitulo` y `[portada].lineas` |
+| `[citas]` | `conjuncion = "y"` o `"&"` (dos autores dentro del paréntesis) y `sin_fecha = "s.f."` o `"s. f."`. `revisar.py` sugiere corregir las citas que no siguen esta forma |
+| `[preliminares].orden` | Orden de portada, previos, índice y listas. La lista de tablas o de figuras no se genera si el documento no tiene ninguna |
 
 ## Saltos de página y maquetación
 - **No pongas saltos a mano para acomodar tablas o figuras.** Word decide las páginas al abrir el archivo; un `\newpage`
@@ -52,5 +54,6 @@ Ejemplo completo de todos los elementos: `ejemplo-sintaxis.md` (en esta misma ca
   usa `salto_nivel1 = true`.
 - Salto de línea **dentro de una celda** de tabla: `<br>` (por ejemplo `| línea uno<br>línea dos | dato |`).
 - Las figuras salen centradas; su tamaño se ajusta con `ancho=14` (en cm). El logo va en `recursos/logos/logo.png`,
-  con `logo` y `logo_ancho_cm` en `documento.toml`.
+  como bloque `{ logo = "…", ancho_cm = 5 }` de `[portada].bloques` (en documentos anteriores a la 0.3.0, con
+  `logo` y `logo_ancho_cm` en `[documento]`).
 - Dejar bloques juntos puede dejar espacio en blanco al pie de la página anterior. Es lo esperado.

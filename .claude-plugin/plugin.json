@@ -1,7 +1,7 @@
 {
   "name": "apa-kit",
   "displayName": "apa-kit — documentos APA 7",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Skills para que un agente cree y versione documentos académicos en formato APA 7 (tesis, trabajos, artículos, informes) de cualquier carrera, con capítulos en Markdown y salida en Word.",
   "author": {
     "name": "jhoel0521",

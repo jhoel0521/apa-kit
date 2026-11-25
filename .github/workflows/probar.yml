@@ -51,9 +51,39 @@ jobs:
         run: python3 .apa/scripts/verificar_entorno.py --instalar --doc tesis
         env:
           APA_FORZAR_VENV: "1"
+      - name: Sin portada definida, el Word no se genera
+        working-directory: ${{ runner.temp }}/proyecto
+        run: "! python3 .apa/scripts/generar_docx.py --doc tesis"
+      - name: Definir la portada (lo que haría la entrevista de apa-init)
+        working-directory: ${{ runner.temp }}/proyecto
+        run: sed -i 's/^bloques = \[\]$/bloques = [{ texto = "{{TITULO}}", negrita = true }, { texto = "{{AUTOR}}" }]/' tesis/documento.toml
       - name: Generar dentro de .apa/.venv
         working-directory: ${{ runner.temp }}/proyecto
         run: python3 .apa/scripts/generar_docx.py --doc tesis
       - name: Confirmar que se creó .apa/.venv y el .docx
         working-directory: ${{ runner.temp }}/proyecto
         run: test -d .apa/.venv && test -f tesis/dist/Tesis.docx
+
+  # #9: Ubuntu con python3 pero SIN python3-venv ni pip. El intento fallido no debe dejar un .venv roto, y al
+  # instalar python3-venv el segundo intento debe funcionar.
+  linux-sin-venv:
+    runs-on: ubuntu-latest
+    container: ubuntu:24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update -qq && DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3 > /dev/null
+      - name: Primer intento sin python3-venv
+        run: |
+          mkdir /tmp/p && cd /tmp/p
+          python3 -B "$GITHUB_WORKSPACE/skills/apa-init/assets/scripts/iniciar.py" --tipo informe --destino informe
+          python3 .apa/scripts/verificar_entorno.py --instalar --doc informe | tee salida.txt || true
+          test ! -e .apa/.venv
+          grep -q "python3-venv" salida.txt
+          if grep -q "\['" salida.txt; then echo "el error sale como lista de Python"; exit 1; fi
+      - name: Segundo intento con python3-venv instalado
+        run: |
+          DEBIAN_FRONTEND=noninteractive apt-get install -y -qq python3-venv > /dev/null
+          cd /tmp/p
+          python3 .apa/scripts/verificar_entorno.py --instalar --doc informe
+          test -d .apa/.venv
+          python3 .apa/scripts/revisar.py --doc informe > /dev/null
