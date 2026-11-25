@@ -30,7 +30,8 @@ Gracias por ayudar. apa-kit quiere servir a cualquier agente, carrera y tipo de 
 1. Crea `skills/apa-init/assets/tipos/<tipo>/` con:
    - `documento.toml` con una sección `[kit]` (`tipo`, `descripcion` en **una línea sin comillas internas**,
      `version_kit = "0"`), `[documento]`, `[portada]` y `[preliminares]`. Copia el de `tesis` o `libre` y ajusta
-     `numerar_titulos`, `salto_nivel1`, `encabezado`, etc.
+     `numerar_titulos`, `salto_nivel1`, `encabezado`, etc. En `[portada]`, `bloques = []` con un comentario que
+     sugiera los elementos del tipo: la portada la define la entrevista de `apa-init`.
    - `.env.example` con **solo** las claves que usa su portada.
    - `capitulos/*.md`: un archivo por capítulo, con prefijo numérico. Solo marcas `[[…]]` neutras, sin datos inventados.
 2. Agrégalo a la tabla de `skills/apa-guia/references/tipos.md` y del `README.md`.

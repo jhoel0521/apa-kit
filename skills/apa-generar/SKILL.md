@@ -39,6 +39,10 @@ una referencia `@tabla:`/`@figura:`/`@sec:` no tiene destino o hay claves repeti
 tal cual y corrige el `.md` indicado (archivo:línea). Los avisos (variables sin valor, tabla sin título)
 no bloquean, pero cuéntaselos al usuario.
 
+Si responde `portada sin definir`, falta la entrevista de portada: haz el paso 3.1 de **apa-init** con el autor
+(no inventes la portada). Si avisa `datos de la portada sin valor (salen en blanco)`, pide esos datos para
+`.env` y vuelve a generar: llenarlos a mano en el Word bloquea las siguientes generaciones (ver abajo).
+
 Si responde `ALTO: … cambió después de generarse`, el usuario editó el Word a mano. **No uses `--forzar`.**
 Explícale: renombrar su Word (p. ej. `Tesis_entregado_2026-11.docx`) o cambiar `salida` en `documento.toml`.
 

@@ -4,7 +4,7 @@ description: Prepara un proyecto para escribir un documento con formato APA 7 (t
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md (Claude Code, Cowork, Codex…). Scripts en Python 3.9 o superior; el verificador instala python-docx y Pillow.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   kit: apa-kit
   profile: core
 ---
@@ -36,8 +36,10 @@ Mira la carpeta de trabajo y decide el modo:
 1. **Qué documento es** y su tipo: ejecuta `python ASSETS/scripts/iniciar.py --listar` y propón el más cercano
    (`tesis`, `libre`…). Si la institución dio un índice, usa `libre` y arma los capítulos con ese índice.
 2. **Nombre de la carpeta** del documento (p. ej. `tesis`). Puede haber varios en el mismo proyecto.
-3. Carrera o área (solo para el tono; no cambia el formato), título provisional, papel (carta/A4/oficio),
-   si usa «Tabla/Figura» o «Cuadro/Gráfico», y si tiene logo (`recursos/logos/logo.png`).
+3. Carrera o área (solo para el tono; no cambia el formato), título provisional, papel (carta/A4/oficio)
+   y si usa «Tabla/Figura» o «Cuadro/Gráfico».
+4. **La portada**, después de crear el documento (paso 3.1). Avísale desde ya que la necesitas: sin ella el
+   Word no se genera. Si su institución le dio una guía o un ejemplo de portada, pídeselo.
 No pidas datos personales en el chat para escribirlos en archivos versionados: van solo en `.env` (paso 3).
 
 ## 3. Crear
@@ -50,10 +52,25 @@ Muestra la salida de cada comando. `verificar_entorno.py` instala `python-docx` 
 (`externally-managed-environment`), el propio verificador crea `.apa/.venv/` y los demás scripts lo usan
 solos. Repite hasta 0 `[ERROR]`; explica los `[AVISO]` en una frase. No instales software del sistema sin permiso.
 
-Luego completa `<carpeta>/.env` **con el usuario**, valor por valor, y ajusta `<carpeta>/documento.toml`
-(título, `salida`, papel, etiquetas). Datos personales solo en `.env`.
+Luego ajusta `<carpeta>/documento.toml` (título, `salida`, papel, etiquetas).
 
-## 3.1 Reglas para los agentes del proyecto (pregunta antes)
+## 3.1 Portada (entrevista obligatoria)
+Los tipos traen `[portada].bloques = []`: **el Word no se genera hasta definir la portada**. Sigue
+`references/portadas.md` (junto a este SKILL.md):
+1. Si hay guía de la institución (PDF, imagen, Word) y puedes leerla, saca de ella los elementos, su orden y su
+   formato. Si el autor quiere, parte de un ejemplo de ese archivo (por ejemplo `bolivia-privada`).
+2. Muestra **la lista completa** de elementos para que el autor marque los suyos (los de la guía o el ejemplo,
+   ya marcados para que los confirme). **No asumas ninguno.** Luego pide el orden, y la fuente y los tamaños si
+   la institución los pide.
+3. Escribe los bloques en `[portada].bloques`. Cada dato personal va como `{{CLAVE}}`: agrégala a
+   `.env.example` y completa `<carpeta>/.env` **con el usuario**, valor por valor.
+4. Genera con **apa-generar** y pide al autor que mire la portada.
+
+Si el autor aún no sabe cómo es su portada, déjala vacía y explícale que no podrá generar el Word hasta
+definirla. Si un dato de la portada queda sin valor en `.env`, sale en blanco: que lo complete en `.env`, no a
+mano en el Word.
+
+## 3.2 Reglas para los agentes del proyecto (pregunta antes)
 Pregunta al usuario si quiere dejar escrito, en el `AGENTS.md` o `CLAUDE.md` de su carpeta de trabajo, cómo debe
 comportarse cualquier agente futuro con su documento. Si acepta y el archivo **no contiene ya** la marca
 `apa-kit`, **añade al final** (sin tocar el resto; si el archivo no existe, créalo):
@@ -79,6 +96,8 @@ python -B ASSETS/scripts/iniciar.py --sincronizar
 ```
 Reemplaza `.apa/scripts/` por la versión de la skill. **No toca** capítulos, `.env` ni `documento.toml`.
 Si hay cambios en `git status` bajo `.apa/`, muéstralos antes de que el usuario haga commit.
+Un documento anterior a la 0.3.0 (con `[portada].lineas` y sin `bloques`) sigue generando la misma portada.
+Si el autor quiere otro orden o tamaños, ofrécele la entrevista de portada (paso 3.1) para pasar a bloques.
 
 ## 6. Migrar la plantilla antigua
 ```bash
@@ -92,7 +111,8 @@ antes**. No toca `dist/`, así que la protección del Word editado a mano sigue 
 anterior). Pregunta al usuario y bórralos con su permiso, conservando `LICENSE`; no los borres solos.
 
 ## 7. Cierre
-Resume: tipo y carpeta creados, si hay git, qué falta en `.env`, y el siguiente paso:
+Resume: tipo y carpeta creados, si la portada quedó definida (si no, que el Word no se generará hasta
+hacerlo), si hay git, qué falta en `.env`, y el siguiente paso:
 - ¿Ya tiene su trabajo en Word? → **apa-importar**.
 - ¿Empieza de cero? → **apa-escribir**, un capítulo por vez.
 - Para ver el avance o generar el Word → **apa-generar**.

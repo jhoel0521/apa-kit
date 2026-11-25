@@ -26,12 +26,11 @@ logo_ancho_cm = 4
 
 [portada]
 espacios_arriba = 2
-lineas = [
-  "{{AUTOR}}",
-  "{{ORGANIZACION}}",
-  "Supervisor: {{SUPERVISOR}}",
-  "{{CIUDAD}}, {{FECHA}}",
-]
+# Vacía hasta la entrevista de portada de apa-init: el Word NO se genera con la portada sin definir.
+# Sugerencia de este tipo, en orden: logo, título, tipo de informe, autor, organización, supervisor, ciudad y fecha.
+# Cada bloque es { texto = "..." } (con fuente, tamano y negrita opcionales), { logo = "ruta" } o
+# { espacio = 1 }. Ejemplos: skills/apa-init/references/portadas.md. Datos personales solo como {{CLAVE}}.
+bloques = []
 
 [preliminares]
 orden = ["portada", "previos", "indice", "lista_tablas", "lista_figuras"]

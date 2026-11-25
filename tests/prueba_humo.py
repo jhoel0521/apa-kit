@@ -39,6 +39,20 @@ def correr(cwd, *args):
     return r.returncode, (r.stdout + r.stderr).strip()
 
 
+PORTADA_MINIMA = """bloques = [
+  { texto = "{{TITULO}}", negrita = true },
+  { texto = "{{AUTOR}}" },
+]"""
+
+
+def definir_portada(carpeta, bloques=PORTADA_MINIMA):
+    """Los tipos nuevos traen la portada sin definir (bloques = []): la prueba hace lo que haría la entrevista."""
+    toml = carpeta / "documento.toml"
+    texto = toml.read_text(encoding="utf-8")
+    ok(f"{carpeta.name}: el tipo trae la portada sin definir (bloques = [])", "bloques = []" in texto)
+    toml.write_text(texto.replace("bloques = []", bloques, 1), encoding="utf-8")
+
+
 def listado(base):
     return sorted(str(p.relative_to(base)) for p in base.rglob("*") if "__pycache__" not in p.parts)
 
@@ -137,6 +151,7 @@ def probar_tipos(tmp):
         ok(f"iniciar.py crea el tipo '{tipo}'", code == 0, sal[-300:])
         if code != 0:
             continue
+        definir_portada(proyecto / tipo)
         code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", tipo)
         ok(f"genera el tipo '{tipo}'", code == 0, sal[-300:])
         docx = proyecto / tipo / "dist" / f"{ {'tesis': 'Tesis', 'libre': 'Documento'}[tipo] }.docx"
@@ -182,6 +197,7 @@ def probar_demas_tipos(tmp):
     for tipo, salida in esperado.items():
         code, sal = correr(proyecto, INICIAR, "--tipo", tipo, "--destino", tipo)
         ok(f"iniciar.py crea el tipo '{tipo}'", code == 0, sal[-300:])
+        definir_portada(proyecto / tipo)
         code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", tipo)
         docx = proyecto / tipo / "dist" / f"{salida}.docx"
         if not ok(f"genera el tipo '{tipo}'", code == 0 and docx.exists(), sal[-400:]):
@@ -221,6 +237,7 @@ def probar_tablas_juntas(tmp):
     proyecto = tmp / "tablas"
     proyecto.mkdir()
     correr(proyecto, INICIAR, "--tipo", "libre", "--destino", "doc")
+    definir_portada(proyecto / "doc")
     (proyecto / "doc" / "capitulos" / "01-primera-seccion.md").write_text("\n".join([
         "# Tablas", "", "Tabla: Una tabla {#t1}", "", "| A | B |", "|---|---|", "| 1 | uno<br>dos |", "| 2 | tres |", "",
         "Nota: la nota.", ""]), encoding="utf-8")
@@ -268,6 +285,8 @@ def probar_paquete(tmp):
     proyecto.mkdir()
     code, sal = correr(proyecto, skill / "assets" / "scripts" / "iniciar.py", "--tipo", "articulo", "--destino", "mi-articulo")
     ok("el paquete único crea un documento", code == 0, sal[-300:])
+    ok("el paquete único trae la guía de portadas", (skill / "references" / "portadas.md").exists())
+    definir_portada(proyecto / "mi-articulo")
     code, sal = correr(proyecto, ".apa/scripts/generar_docx.py")
     ok("el paquete único genera el Word", code == 0 and (proyecto / "mi-articulo" / "dist" / "Articulo.docx").exists(), sal[-300:])
     ok("el paquete único no se modifica al usarlo", listado(skill) == antes)
@@ -300,6 +319,87 @@ def probar_sincronizar(proyecto):
     code, sal = correr(proyecto, INICIAR, "--sincronizar")
     ok("--sincronizar restaura el motor", code == 0 and "estropeado" not in motor.read_text(encoding="utf-8"), sal[-200:])
     ok("--sincronizar no toca los capítulos", huella_carpeta(proyecto / "libre" / "capitulos") == caps)
+
+
+def portada_ejemplo(nombre):
+    """Bloque TOML de un ejemplo de skills/apa-init/references/portadas.md (lo que copia el agente)."""
+    import re
+    texto = (REPO / "skills" / "apa-init" / "references" / "portadas.md").read_text(encoding="utf-8")
+    m = re.search(rf"### {re.escape(nombre)}.*?```toml\n(.*?)```", texto, re.S)
+    return m.group(1).strip() if m else ""
+
+
+def parrafos_portada(docx):
+    """Párrafos de la portada: hasta el primero que empieza página nueva."""
+    from docx import Document
+    salida = []
+    for p in Document(docx).paragraphs:
+        if p.paragraph_format.page_break_before:
+            break
+        salida.append(p)
+    return salida
+
+
+def probar_portada(tmp):
+    """Portada por bloques (#13): no se genera sin definirla; definida, los datos faltantes salen en blanco."""
+    import re
+    proyecto = tmp / "portada"
+    proyecto.mkdir()
+    correr(proyecto, INICIAR, "--tipo", "informe", "--destino", "inf")
+    toml = proyecto / "inf" / "documento.toml"
+    docx = proyecto / "inf" / "dist" / "Informe.docx"
+    original = toml.read_text(encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    ok("portada sin definir: no se genera el Word", code != 0 and "portada sin definir" in sal and not docx.exists(), sal[-300:])
+    toml.write_text(original.replace("bloques = []", 'bloques = [{ texto = "[[Nombre de la carrera]]" }]'), encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    ok("portada con texto de plantilla [[…]]: no se genera el Word", code != 0 and not docx.exists(), sal[-300:])
+    toml.write_text(original.replace("bloques = []", 'bloques = [{ color = "rojo" }]'), encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    ok("portada con un bloque desconocido: error claro", code != 0 and "no reconocido" in sal and not docx.exists(), sal[-300:])
+
+    ejemplo = portada_ejemplo("Estándar universidades privadas de Bolivia")
+    ok("portadas.md trae el ejemplo bolivia-privada", "Arial Black" in ejemplo, ejemplo[:200])
+    toml.write_text(re.sub(r"\[portada\].*?(?=\n\[preliminares\])", lambda _: ejemplo, original, flags=re.S),
+                    encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    if not ok("el ejemplo bolivia-privada genera el Word", code == 0 and docx.exists(), sal[-400:]):
+        return
+    portada = parrafos_portada(docx)
+    runs = [r for p in portada for r in p.runs if r.text.strip()]
+    ok("bolivia-privada: la portada usa Arial Black", runs and all(r.font.name == "Arial Black" for r in runs),
+       str([(r.text, r.font.name) for r in runs]))
+    ok("bolivia-privada: el título sale de [documento].titulo", any("Título del informe" in p.text for p in portada))
+    ok("portada definida sin .env: los datos faltantes salen en blanco, no como [[CLAVE]]",
+       not any("ACTIVIDAD" in p.text or "DOCENTE" in p.text for p in portada) and "salen en blanco" in sal, sal[-400:])
+    (proyecto / "inf" / ".env").write_text("AUTOR=Ana Pérez\nCARRERA=Carrera de ejemplo\n", encoding="utf-8")
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "inf")
+    portada = parrafos_portada(docx)
+    ok("portada: usa los datos de .env", code == 0 and any(p.text == "Ana Pérez" for p in portada), sal[-300:])
+    runs = [r for p in portada for r in p.runs if r.text.strip()]
+    ok("bolivia-privada: tamaños 20, 14 y 12", {r.font.size.pt for r in runs if r.font.size} == {20.0, 14.0, 12.0},
+       str({r.font.size.pt for r in runs if r.font.size}))
+
+
+def probar_compatibilidad_02(tmp):
+    """Un documento 0.2 (portada con lineas, sin bloques) se genera como antes y --sincronizar no lo toca."""
+    proyecto = tmp / "v02"
+    proyecto.mkdir()
+    correr(proyecto, INICIAR, "--tipo", "libre", "--destino", "doc")
+    toml = proyecto / "doc" / "documento.toml"
+    texto = toml.read_text(encoding="utf-8").replace('subtitulo = ""', 'subtitulo = "Subtítulo antiguo"')
+    texto = texto.replace("bloques = []", 'lineas = [\n  "{{AUTOR}}",\n  "Línea antigua",\n]')
+    toml.write_text(texto, encoding="utf-8")
+    antes = toml.read_bytes()
+    code, sal = correr(proyecto, ".apa/scripts/generar_docx.py", "--doc", "doc")
+    docx = proyecto / "doc" / "dist" / "Documento.docx"
+    if not ok("documento 0.2 (lineas, sin bloques): se genera", code == 0 and docx.exists(), sal[-300:]):
+        return
+    textos = [p.text for p in parrafos_portada(docx) if p.text.strip()]
+    ok("documento 0.2: la portada sale como antes (título, subtítulo, líneas)",
+       textos == ["Título del documento", "Subtítulo antiguo", "AUTOR", "Línea antigua"], str(textos))
+    code, sal = correr(proyecto, INICIAR, "--sincronizar")
+    ok("documento 0.2: --sincronizar no modifica documento.toml", code == 0 and toml.read_bytes() == antes, sal[-200:])
 
 
 def probar_entorno(proyecto):
@@ -398,6 +498,8 @@ def main():
         proyecto = probar_tipos(tmp)
         probar_demas_tipos(tmp)
         probar_tablas_juntas(tmp)
+        probar_portada(tmp)
+        probar_compatibilidad_02(tmp)
         probar_paquete(tmp)
         probar_importar(tmp, proyecto)
         probar_sincronizar(proyecto)

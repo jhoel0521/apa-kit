@@ -237,6 +237,30 @@ class DocumentoAPA:
     def vacio(self):
         return self._par()
 
+    def linea_portada(self, txt, fuente=None, tamano=None, negrita=False):
+        """Una línea centrada de la portada por bloques, con su propia fuente y tamaño.
+
+        Interlineado sencillo y sin sangría: con bloques de 20 y 14 pt, el doble espacio partiría la portada
+        en dos páginas."""
+        p = self._par()
+        pf = p.paragraph_format
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pf.first_line_indent = Cm(0)
+        pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+        pf.space_before = pf.space_after = Pt(0)
+        self.texto(p, txt)
+        for r in p.runs:
+            if negrita:
+                r.bold = True
+            if tamano:
+                r.font.size = Pt(float(tamano))
+            if fuente:
+                r.font.name = fuente
+                rf = r._r.get_or_add_rPr().find(qn("w:rFonts"))
+                for k in ("w:ascii", "w:hAnsi", "w:cs", "w:eastAsia"):
+                    rf.set(qn(k), fuente)
+        return p
+
     def titulo(self, nivel, txt, en_indice=True, salto=None):
         """salto=True fuerza página nueva (nivel 1); None sigue salto_nivel1; False nunca."""
         if not en_indice:

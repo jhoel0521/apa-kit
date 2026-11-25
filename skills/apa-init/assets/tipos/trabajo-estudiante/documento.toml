@@ -26,13 +26,11 @@ logo_ancho_cm = 4
 [portada]
 # Portada de estudiante APA 7: título en negrita, y debajo autor, facultad y universidad, curso, docente y fecha.
 espacios_arriba = 3
-lineas = [
-  "{{AUTOR}}",
-  "{{FACULTAD}}, {{UNIVERSIDAD}}",
-  "{{CURSO}}",
-  "{{DOCENTE}}",
-  "{{FECHA}}",
-]
+# Vacía hasta la entrevista de portada de apa-init: el Word NO se genera con la portada sin definir.
+# Sugerencia de este tipo, en orden: título en negrita, autor, facultad y universidad, curso, docente y fecha.
+# Cada bloque es { texto = "..." } (con fuente, tamano y negrita opcionales), { logo = "ruta" } o
+# { espacio = 1 }. Ejemplos: skills/apa-init/references/portadas.md. Datos personales solo como {{CLAVE}}.
+bloques = []
 
 [preliminares]
 # APA 7: el título se repite al comenzar el texto. Los trabajos cortos no llevan índice.
