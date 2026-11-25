@@ -42,7 +42,7 @@ Ejemplo completo de todos los elementos: `ejemplo-sintaxis.md` (en esta misma ca
 | `etiqueta_tabla` / `etiqueta_figura` | «Tabla»/«Figura», o «Cuadro»/«Gráfico» si la facultad lo pide |
 | `fuente`, `tamano`, `papel`, `justificar` | Tipografía y página (APA 7 admite Times New Roman 12, Calibri 11, Arial 11…) |
 | `tablas_juntas` | `true` (por defecto): las filas no se parten y cada tabla va atada a su título y a su nota. Si cabe en una página, Word la mueve entera a la siguiente; si es más alta que una página, la parte y repite el encabezado. `false`: las filas fluyen libres |
-| `[preliminares].orden` | Orden de portada, previos, índice y listas |
+| `[preliminares].orden` | Orden de portada, previos, índice y listas. La lista de tablas o de figuras no se genera si el documento no tiene ninguna |
 
 ## Saltos de página y maquetación
 - **No pongas saltos a mano para acomodar tablas o figuras.** Word decide las páginas al abrir el archivo; un `\newpage`

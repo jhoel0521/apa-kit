@@ -219,7 +219,9 @@ def _plano(txt):
 
 # ================================================================ numeración y referencias
 def numerar(secciones, cfg):
-    """Asigna números a títulos, tablas y figuras en el orden de aparición y registra las claves."""
+    """Asigna números a títulos, tablas y figuras en el orden de aparición y registra las claves.
+
+    Devuelve (claves, tablas, figuras): las cuentas deciden si se generan las listas de tablas y figuras."""
     claves, cap, sub = {}, 0, [0, 0, 0]
     tablas = figuras = 0
     numerar_titulos = cfg.get("numerar_titulos", False)   # APA 7 no numera los títulos
@@ -270,7 +272,7 @@ def numerar(secciones, cfg):
                 figuras += 1
                 registrar("figura", b["at"]["id"], f"{cfg.get('etiqueta_figura', 'Figura')} {figuras}",
                           b["origen"])
-    return claves
+    return claves, tablas, figuras
 
 
 class Sustituto:
@@ -439,7 +441,7 @@ def main():
     if not caps:
         sys.exit(f"No hay capítulos en {CAPITULOS}")
     secciones = [(True, parsear(f)) for f in previos] + [(False, parsear(f)) for f in caps]
-    claves = numerar(secciones, dcfg)
+    claves, n_tablas, n_figuras = numerar(secciones, dcfg)
     sub = Sustituto({**cfg.get("variables", {}), **env}, claves)
 
     doc = DocumentoAPA(dcfg.get("fuente", "Times New Roman"), int(dcfg.get("tamano", 12)),
@@ -460,10 +462,16 @@ def main():
             titulo_cuerpo(doc, dcfg, sub)
         elif parte == "indice":
             doc.indice(int(dcfg.get("niveles_indice", 3)))
-        elif parte == "lista_tablas":
-            doc.lista_tablas()
+        elif parte == "lista_tablas":   # #12: sin tablas no hay lista (APA y las guías la piden solo si las hay)
+            if n_tablas:
+                doc.lista_tablas()
+            else:
+                avisos.append("sin tablas con título: no se genera la lista de tablas")
         elif parte == "lista_figuras":
-            doc.lista_figuras()
+            if n_figuras:
+                doc.lista_figuras()
+            else:
+                avisos.append("sin figuras: no se genera la lista de figuras")
         else:
             errores.append(f"documento.toml: parte de preliminares desconocida '{parte}'")
     for _, bloques in secciones[len(previos):]:

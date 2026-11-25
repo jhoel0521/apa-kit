@@ -152,6 +152,9 @@ def probar_tipos(tmp):
         ok(f"'{tipo}': Referencias siempre en página nueva", bool(ref) and ref[0][1] is True, str(t1))
         from docx import Document
         texto = "\n".join(p.text for p in Document(docx).paragraphs)
+        ok(f"'{tipo}': sin tablas ni figuras no hay listas vacías (#12)",
+           "Lista de Tablas" not in texto and "Lista de Figuras" not in texto
+           and "no se genera la lista de tablas" in sal and "no se genera la lista de figuras" in sal, sal[-300:])
         ok(f"'{tipo}': el aviso del índice da los atajos correctos (#11)",
            "Ctrl+E en Word en español" in texto and "Actualizar todo" in texto and "(Ctrl+A, F9)" not in texto)
     ok("iniciar.py no escribió nada dentro de la skill", listado(ASSETS.parent) == antes)
@@ -225,6 +228,10 @@ def probar_tablas_juntas(tmp):
     docx = proyecto / "doc" / "dist" / "Documento.docx"
     if not ok("genera un documento con una tabla", code == 0 and docx.exists(), sal[-300:]):
         return
+    parrafos = [p.text for p in Document(docx).paragraphs]
+    ok("con una tabla y sin figuras solo se genera la lista de tablas (#12)",
+       "Lista de Tablas" in parrafos and "Lista de Figuras" not in parrafos
+       and "no se genera la lista de figuras" in sal, str([p for p in parrafos if p.startswith("Lista")]))
     t = Document(docx).tables[0]
     ok("tablas: ninguna fila se parte (cantSplit)",
        all(f._tr.trPr is not None and f._tr.trPr.find(qn("w:cantSplit")) is not None for f in t.rows))
