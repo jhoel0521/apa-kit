@@ -101,19 +101,31 @@ def instalar_librerias():
             return "pip"
     print("    pip no pudo instalar en el sistema (normal en Debian/Ubuntu/Homebrew); "
           "creo un entorno aislado en .apa/.venv/ ...")
+    # Un .venv viejo o a medio crear (de un intento anterior) haría fallar también este intento.
+    shutil.rmtree(_entorno.VENV, ignore_errors=True)
     v = subprocess.run([sys.executable, "-m", "venv", str(_entorno.VENV)], capture_output=True,
                        text=True, encoding="utf-8", errors="replace")
     py = _entorno.python_del_venv()
     if v.returncode != 0 or py is None:
-        print("    no pude crear .venv/:", (v.stderr or v.stdout).strip().splitlines()[-1:] or "")
-        print("    instala el soporte de entornos virtuales:", como_instalar_python())
+        shutil.rmtree(_entorno.VENV, ignore_errors=True)  # no dejar un .venv roto que atrape a los scripts
+        print("    no pude crear .venv/. El sistema dijo:")
+        print(ultimas_lineas(v.stdout + "\n" + v.stderr, 8))  # ensurepip explica la causa en stdout
+        print("    instala el soporte de entornos virtuales y vuelve a ejecutar --instalar:", como_instalar_python())
         return None
     r = subprocess.run([str(py), "-m", "pip", "install", "-r", req], capture_output=True, text=True,
                        encoding="utf-8", errors="replace")
     if r.returncode != 0:
-        print("    falló pip en .venv/:", "\n".join(r.stderr.strip().splitlines()[-3:]))
+        shutil.rmtree(_entorno.VENV, ignore_errors=True)
+        print("    falló pip dentro de .venv/ (lo borré para no dejarlo a medias). El sistema dijo:")
+        print(ultimas_lineas(r.stdout + "\n" + r.stderr))
         return None
     return "venv"
+
+
+def ultimas_lineas(texto, n=3):
+    """Las últimas líneas de un error, como texto legible (no como lista de Python)."""
+    lineas = [ln.rstrip() for ln in (texto or "").strip().splitlines() if ln.strip()]
+    return "\n".join("      " + ln for ln in lineas[-n:]) or "      (sin mensaje)"
 
 
 def revisar_python():

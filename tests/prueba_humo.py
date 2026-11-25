@@ -291,6 +291,21 @@ def probar_sincronizar(proyecto):
     ok("--sincronizar no toca los capítulos", huella_carpeta(proyecto / "libre" / "capitulos") == caps)
 
 
+def probar_entorno(proyecto):
+    """Un .apa/.venv/ a medio crear (sin python-docx) no atrapa a los scripts (#9)."""
+    venv = proyecto / ".apa" / ".venv"
+    for py in ("Scripts/python.exe", "bin/python3"):
+        (venv / py).parent.mkdir(parents=True, exist_ok=True)
+        (venv / py).write_text("", encoding="utf-8")
+    consulta = "import sys; sys.path.insert(0, '.apa/scripts'); import _entorno; print(_entorno.venv_listo())"
+    code, sal = correr(proyecto, "-c", consulta)
+    ok("_entorno: un .venv sin python-docx no se usa", code == 0 and sal.strip().endswith("False"), sal[-200:])
+    (venv / "lib" / "python3.12" / "site-packages" / "docx").mkdir(parents=True)
+    code, sal = correr(proyecto, "-c", consulta)
+    ok("_entorno: un .venv con python-docx sí se usa", code == 0 and sal.strip().endswith("True"), sal[-200:])
+    shutil.rmtree(venv)
+
+
 def probar_revisar(proyecto):
     """revisar.py lista candidatos: una cita sin referencia, una referencia sin cita y las marcas."""
     caps = proyecto / "libre" / "capitulos"
@@ -375,6 +390,7 @@ def main():
         probar_paquete(tmp)
         probar_importar(tmp, proyecto)
         probar_sincronizar(proyecto)
+        probar_entorno(proyecto)
         probar_revisar(proyecto)
         probar_migrar(tmp)
     print("\nRESULTADO:", "todo bien" if not fallos else f"{len(fallos)} fallo(s): " + "; ".join(fallos))
