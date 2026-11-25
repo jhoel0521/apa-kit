@@ -4,7 +4,7 @@ description: Convierte un documento de Word (.docx) o Google Docs ya avanzado en
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md. Requiere Python 3.9+ y la carpeta .apa/ creada por apa-init. Solo lee archivos .docx.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   kit: apa-kit
   profile: core
 ---

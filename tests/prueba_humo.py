@@ -133,8 +133,13 @@ def probar_skills():
     carpetas = sorted(p for p in (REPO / "skills").iterdir() if (p / "SKILL.md").exists())
     ok("existen las seis skills", [p.name for p in carpetas] ==
        ["apa-escribir", "apa-generar", "apa-guia", "apa-importar", "apa-init", "apa-revisar"], str([p.name for p in carpetas]))
+    version = (ASSETS / "VERSION").read_text(encoding="utf-8").strip()
     for p in carpetas:
         comprobar_frontmatter(p / "SKILL.md", p.name)
+        ok(f"{p.name}: metadata.version = VERSION ({version})",
+           f'version: "{version}"' in (p / "SKILL.md").read_text(encoding="utf-8"))
+    ok(f"plugin.json: version = VERSION ({version})",
+       f'"version": "{version}"' in (REPO / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))
     # Lo que trae una plantilla sale tal cual en el Word del autor: sin rayas, flechas ni emojis.
     sucios = [f"{r.relative_to(REPO)}: {c}" for r in sorted((REPO / "skills" / "apa-init" / "assets" / "tipos").rglob("*"))
               if r.suffix in (".md", ".toml") for c in "—–→" if c in r.read_text(encoding="utf-8")]

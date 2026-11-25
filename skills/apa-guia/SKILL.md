@@ -4,7 +4,7 @@ description: Reglas y sintaxis para escribir cualquier documento académico en f
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md. Es solo documentación y no ejecuta nada.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   kit: apa-kit
   profile: core
 ---

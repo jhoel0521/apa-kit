@@ -4,7 +4,7 @@ description: Revisa un documento académico en APA 7 antes de entregarlo - lista
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md. Requiere Python 3.9+ y la carpeta .apa/ creada por apa-init.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   kit: apa-kit
   profile: core
 ---

@@ -4,7 +4,7 @@ description: Ayuda a redactar o mejorar un capítulo de un documento académico 
 license: MIT
 compatibility: Cualquier agente que admita SKILL.md. No ejecuta código para redactar; usa los scripts solo para comprobar.
 metadata:
-  version: "0.2.0"
+  version: "0.3.0"
   kit: apa-kit
   profile: core
 ---
