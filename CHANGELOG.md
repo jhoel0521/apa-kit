@@ -4,6 +4,12 @@ Versionado semántico en fase de desarrollo (`0.x`): puede haber cambios grandes
 
 ## Sin publicar
 ### Nuevo
+- `revisar.py` lista en el grupo «Caracteres a evitar», con archivo y línea, las rayas (—), el guion medio (–) fuera
+  de un rango numérico, las flechas (→) y los emojis o íconos de los capítulos y de `documento.toml` (#7, #14).
+  `--estricto` también los cuenta.
+- Regla de estilo en `apa-guia/references/reglas-ia.md` («Estilo») y en `apa-escribir`: puntuación normal, sin
+  caracteres que delatan a la IA, también en el texto copiado de otro documento, con una guía para reemplazarlos
+  sin romper la frase (#7, #14).
 - Logo en el README y archivos para compartir en `docs/img/` (logo, imagen social de GitHub, historia vertical).
 
 ### Cambia
@@ -11,6 +17,8 @@ Versionado semántico en fase de desarrollo (`0.x`): puede haber cambios grandes
 - `herramientas/arte/preparar_arte.py` genera el logo y las imágenes para compartir a partir de las imágenes de la IA.
 
 ### Corrige
+- Las plantillas `tesis` y `tesis-software` ponían una raya en la portada (`{{FACULTAD}} — {{CARRERA}}`); ahora es
+  una coma. Los documentos ya creados no cambian (#14).
 - Sitio web (auditoría UX): enlaces de navegación, logo, resúmenes de preguntas y botones miden 44 px o más; la descarga del
   Cowork es el botón principal de «Instalar» y «Copiar texto» pasa a secundario; el aviso para móviles va antes de los botones;
   los botones heredan la fuente de la página; la tipografía se reduce a 4 tamaños (15, 17, 24 y 28/40 px); los dos botones

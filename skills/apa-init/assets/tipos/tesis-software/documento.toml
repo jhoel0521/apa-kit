@@ -30,7 +30,7 @@ espacios_arriba = 1
 lineas = [
   "{{AUTOR}}",
   "{{UNIVERSIDAD}}",
-  "{{FACULTAD}} — {{CARRERA}}",
+  "{{FACULTAD}}, {{CARRERA}}",
   "Tutor: {{TUTOR}}",
   "{{CIUDAD}}, {{FECHA}}",
 ]

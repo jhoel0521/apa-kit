@@ -38,13 +38,14 @@ Termina siempre con código 0 (con `--estricto`, 1 si queda algo). Explica al us
 | Texto de plantilla `[[…]]` | Párrafo guía que no se reemplazó | Escribirlo con el autor o borrar el apartado si su institución no lo pide |
 | Citas sin referencia | `(Autor, año)` sin entrada bajo `# Referencias` | Pregunta de dónde sale; agrega la referencia con `[[verificar]]` |
 | Referencias que no se citan | Entrada de la lista que ningún capítulo cita | Pregunta si se cita o se quita |
+| Caracteres a evitar | Rayas (—), guion medio (–) fuera de un rango numérico, flechas (→) o emojis, en los capítulos o en `documento.toml` | Propón el reemplazo de `reglas-ia.md` («Estilo»); si el texto es del autor, aplícalo cuando acepte |
 
 Falsos positivos frecuentes: autores corporativos (`Organización Mundial de la Salud [OMS], 2020`), citas
 secundarias («citado en…»), años con letra (`2020a`) y textos como «Ley 1178 (1990)». Revisa antes de
 afirmar que hay un error.
 
 ## 3. Lista antes de entregar
-1. `revisar.py` sin pendientes ni citas huérfanas (salvo falsos positivos confirmados).
+1. `revisar.py` sin pendientes, citas huérfanas ni caracteres a evitar (salvo falsos positivos confirmados).
 2. Todas las referencias comprobadas por el autor (ninguna `[[verificar]]` viva).
 3. `generar_docx.py` termina en `OK` y se abre en Word aceptando «actualizar campos».
 4. Datos personales completos en `.env` (el generador avisa de las variables vacías).

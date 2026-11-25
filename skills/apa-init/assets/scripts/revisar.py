@@ -9,6 +9,8 @@ Qué busca en <documento>/capitulos/*.md:
   1. Marcas sin resolver: [[pendiente…]], [[verificar…]], [[revisar…]] y textos de plantilla [[…]].
   2. Citas (Autor, año) / Autor (año) que no tienen su referencia bajo «# Referencias».
   3. Referencias que no se citan en ningún capítulo.
+  4. Caracteres que delatan texto generado o pegado sin revisar: rayas (—), guion medio (–) fuera de un
+     rango numérico como «pp. 10–15», flechas (→) y emojis o íconos. También en documento.toml.
 
 Es una ayuda: puede equivocarse (autores corporativos, citas secundarias, años con letra). El agente debe
 confirmar cada candidato con el autor. Por defecto siempre termina con código 0.
@@ -33,6 +35,15 @@ RE_AUTOR_ANIO = re.compile(rf"^(?:cf\.|v[eé]ase|ver|e\.g\.,|p\. ej\.,)?\s*({NOM
 RE_NARRATIVA = re.compile(rf"\b({NOMBRE})(?:\s+(?:y|e|&)\s+{NOMBRE}|\s+et al\.)?\s+\(((?:1[5-9]\d\d|20\d\d)[a-z]?)[,)]")
 RE_REFERENCIA = re.compile(r"\(((?:1[5-9]\d\d|20\d\d)[a-z]?|s\. ?f\.|en prensa)[^)]*\)")
 RE_COMENTARIO = re.compile(r"<!--.*?-->", re.S)
+
+# Caracteres a evitar en el texto del documento (ver apa-guia/references/reglas-ia.md, «Estilo»).
+# El guion medio solo se acepta entre dos números: APA 7 lo usa en rangos («pp. 10–15», «2019–2021»).
+CARACTERES = [
+    ("raya", re.compile("[—―]")),
+    ("guion medio", re.compile(r"(?<!\d)–|–(?!\d)")),
+    ("flecha", re.compile("[←-⇿⟰-⟿⤀-⥿⬀-⯿]")),
+    ("emoji o ícono", re.compile("[\U0001f000-\U0001faff☀-➿️]")),
+]
 
 
 def plano(txt):
@@ -64,11 +75,35 @@ def leer(ruta):
     return salida
 
 
+def buscar_caracteres(lineas, nombre):
+    """[(dónde, qué, fragmento)] de cada carácter a evitar en las líneas dadas."""
+    hallados = []
+    for n, ln in lineas:
+        for que, patron in CARACTERES:
+            for m in patron.finditer(ln):
+                ini, fin = max(0, m.start() - 30), m.end() + 30
+                fragmento = ("…" if ini else "") + ln[ini:fin].strip() + ("…" if fin < len(ln) else "")
+                hallados.append((f"{nombre}:{n}", que, fragmento))
+    return hallados
+
+
+def caracteres_toml():
+    """Líneas de documento.toml sin comentarios: la portada y los títulos también salen en el Word."""
+    ruta = DOCS / "documento.toml"
+    if not ruta.exists():
+        return []
+    lineas = [(n, ln) for n, ln in enumerate(ruta.read_text(encoding="utf-8").splitlines(), 1)
+              if not ln.lstrip().startswith("#")]
+    return buscar_caracteres(lineas, ruta.name)
+
+
 def analizar(capitulos):
-    marcas, citas, referencias = [], {}, {}
+    marcas, citas, referencias, caracteres = [], {}, {}, []
     for ruta in capitulos:
         en_refs = False
-        for n, ln in leer(ruta):
+        lineas = leer(ruta)
+        caracteres += buscar_caracteres(lineas, ruta.name)
+        for n, ln in lineas:
             titulo = re.match(r"^(#{1,4})\s+(.+?)\s*(\{[^}]*\})?\s*$", ln)
             if titulo and len(titulo.group(1)) == 1:
                 en_refs = plano(titulo.group(2)).startswith(("referencias", "bibliografia"))
@@ -91,7 +126,7 @@ def analizar(capitulos):
                         citas.setdefault(clave(m.group(1), m.group(2)), f"{ruta.name}:{n}")
             for m in RE_NARRATIVA.finditer(limpio):
                 citas.setdefault(clave(m.group(1), m.group(2)), f"{ruta.name}:{n}")
-    return marcas, citas, referencias
+    return marcas, citas, referencias, caracteres
 
 
 def coincide(k, otros):
@@ -110,11 +145,12 @@ def main():
     capitulos = sorted((DOCS / "capitulos").glob("*.md"))
     if not capitulos:
         sys.exit(f"No hay capítulos en {DOCS / 'capitulos'}")
-    marcas, citas, referencias = analizar(capitulos)
+    marcas, citas, referencias, caracteres = analizar(capitulos)
+    caracteres = caracteres_toml() + caracteres
     sin_ref = sorted((k, d) for k, d in citas.items() if not coincide(k, referencias))
     sin_cita = sorted((k, d) for k, d in referencias.items() if not coincide(k, citas))
 
-    print(f"Revisión de {DOCS.name}/  ({len(capitulos)} archivos)  —  son CANDIDATOS: confírmalos con el autor\n")
+    print(f"Revisión de {DOCS.name}/  ({len(capitulos)} archivos) · son CANDIDATOS: confírmalos con el autor\n")
     etiquetas = {"pendiente": "Pendientes", "verificar": "Por verificar (referencias o datos sin comprobar)",
                  "revisar": "Por revisar (el importador no pudo convertirlo)",
                  "plantilla": "Texto de plantilla sin reemplazar"}
@@ -131,9 +167,17 @@ def main():
     print(f"\n== Referencias que no se citan: {len(sin_cita)}")
     for (autor, anio), donde in sin_cita:
         print(f"   {donde}  {VISIBLE.get(autor, autor)} ({anio})  -> ningún capítulo la cita")
-    print(f"\nResumen: {len(marcas)} marcas · {len(sin_ref)} citas sin referencia · {len(sin_cita)} referencias sin cita")
+    print(f"\n== Caracteres a evitar (rayas, flechas, emojis): {len(caracteres)}")
+    for donde, que, fragmento in caracteres[:30]:
+        print(f"   {donde}  {que}: {fragmento}")
+    if len(caracteres) > 30:
+        print(f"   … y {len(caracteres) - 30} más")
+    if caracteres:
+        print("   -> Cámbialos por puntuación normal (reglas-ia.md, «Estilo»). Si el texto es del autor, pregúntale antes.")
+    print(f"\nResumen: {len(marcas)} marcas · {len(sin_ref)} citas sin referencia · {len(sin_cita)} referencias sin cita"
+          f" · {len(caracteres)} caracteres a evitar")
     pendientes = [m for m in marcas if m[0] != "plantilla"]
-    sys.exit(1 if args.estricto and (pendientes or sin_ref or sin_cita) else 0)
+    sys.exit(1 if args.estricto and (pendientes or sin_ref or sin_cita or caracteres) else 0)
 
 
 if __name__ == "__main__":

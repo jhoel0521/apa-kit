@@ -20,6 +20,24 @@ Las decisiones de este archivo son humanas: no las cambies por iniciativa propia
 - Datos personales (nombre, carnet, tutor, universidad…) solo en `<documento>/.env`, que git ignora.
   En los `.md` y el `.toml` usa `{{CLAVE}}`. No los copies a commits, README ni mensajes.
 
+## Estilo
+- **Puntuación normal, sin caracteres que delatan a la IA.** En el texto del documento no uses rayas
+  (—), guion medio (–), flechas decorativas (→, ⇒), emojis ni íconos. Escribe con comas, puntos, dos
+  puntos, paréntesis y guion simple (-).
+- **Vale también para lo que copias o reutilizas.** Si armas un capítulo con texto que ya existe (un
+  informe anterior, un README, documentación del proyecto), limpia esos caracteres al pasarlo, igual
+  que si lo redactaras. Revisa también `documento.toml`: la portada y el título salen en el Word.
+- **El texto del autor no se cambia a escondidas.** En lo que el autor escribió o importó de su Word,
+  propón el cambio y aplícalo cuando acepte.
+- **Cómo reemplazar sin romper la frase:**
+  - Aclaración entre rayas (`el ciclo —reportar y moderar— con…`) → entre paréntesis
+    (`el ciclo (reportar y moderar) con…`) o entre comas. Si queda `(…) (@tabla:x)`, reescribe la frase.
+  - Raya sola en una celda de tabla → «No aplica» o la celda vacía.
+  - Raya entre dos datos (`Facultad — Carrera`) → coma (`Facultad, Carrera`).
+  - Flecha que indica un paso (`A → B`) → palabras (`de A a B`, `A y luego B`).
+- **Excepción APA:** el guion medio en rangos numéricos sí es correcto («pp. 10–15», «2019–2021»).
+- `revisar.py` lista lo que encuentre, con archivo y línea, en el grupo «Caracteres a evitar».
+
 ## Trabajo con capítulos (por qué esta herramienta existe)
 - Un capítulo por archivo: lee y edita **solo el capítulo que toca**, no todo el documento. Así no
   pierdes contexto y cada cambio queda como una versión pequeña en git.

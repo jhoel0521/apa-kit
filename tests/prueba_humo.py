@@ -121,6 +121,10 @@ def probar_skills():
        ["apa-escribir", "apa-generar", "apa-guia", "apa-importar", "apa-init", "apa-revisar"], str([p.name for p in carpetas]))
     for p in carpetas:
         comprobar_frontmatter(p / "SKILL.md", p.name)
+    # Lo que trae una plantilla sale tal cual en el Word del autor: sin rayas, flechas ni emojis.
+    sucios = [f"{r.relative_to(REPO)}: {c}" for r in sorted((REPO / "skills" / "apa-init" / "assets" / "tipos").rglob("*"))
+              if r.suffix in (".md", ".toml") for c in "—–→" if c in r.read_text(encoding="utf-8")]
+    ok("las plantillas de los tipos no traen rayas ni flechas", not sucios, str(sucios))
 
 
 def probar_tipos(tmp):
@@ -295,9 +299,10 @@ def probar_revisar(proyecto):
         "",
         "Según Kelsen (1960) la norma es el origen. Lo discuten (Pérez & Díaz, 2020; García et al., 2018a).",
         "El marco es amplio (American Psychological Association [APA], 2020, p. 12). [[pendiente: agregar cifra]]",
+        "El ciclo —reportar y moderar— sigue → luego ✅. Rango correcto: pp. 10–15.",
         "",
         "```",
-        "(Ejemplo, 1999) código ignorado",
+        "(Ejemplo, 1999) código ignorado — tampoco cuenta",
         "```",
         "<!-- (Oculto, 2001) comentario ignorado -->",
         ""])
@@ -320,6 +325,10 @@ def probar_revisar(proyecto):
                for a in ("Kelsen", "García", "American")), sal)
     ok("revisar.py ignora código y comentarios", "Ejemplo" not in sal and "Oculto" not in sal, sal)
     ok("revisar.py cuenta pendiente y verificar", "Pendientes: 1" in sal and "Por verificar" in sal and ": 1" in sal)
+    ok("revisar.py lista rayas, flechas y emojis con archivo:línea",
+       "Caracteres a evitar (rayas, flechas, emojis): 4" in sal and "01-primera-seccion.md:5  raya:" in sal
+       and "flecha:" in sal and "emoji o ícono:" in sal, sal)
+    ok("revisar.py acepta el guion medio en un rango numérico (pp. 10–15)", "guion medio" not in sal, sal)
     code, _ = correr(proyecto, ".apa/scripts/revisar.py", "--doc", "libre", "--estricto")
     ok("revisar.py --estricto termina con código 1 si queda algo", code == 1)
 
